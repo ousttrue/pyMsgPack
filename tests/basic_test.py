@@ -43,6 +43,13 @@ class TestPyMsgPack(unittest.TestCase):
         for i in range(0, 0x80):
             self._test_number(i, 0)
 
+        # float
+        packed=pymsgpack.pack(1.2)
+        self.assertAlmostEqual(struct.pack('>Bd', 0xcb, 1.2), packed)
+
+        parsed=pymsgpack.Parser(packed)
+        self.assertAlmostEqual(1.2, parsed.get_float())
+
 
 if __name__ == '__main__':
     print(type(True))

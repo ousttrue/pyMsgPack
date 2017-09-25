@@ -7,6 +7,9 @@ NIL=b'\xC0'
 FALSE=b'\xC2'
 TRUE=b'\xC3'
 
+FLOAT32=0xCA
+FLOAT64=0xCB
+
 POSITIVE_FIXINT_MAP={
         0x00: 0,
         0x01: 1,
@@ -149,6 +152,8 @@ def pack(obj):
     elif isinstance(obj, int):
         if obj>=0 and obj<= 0x7f:
             return struct.pack('b', obj)
+    elif isinstance(obj, float):
+        return struct.pack('>Bd', FLOAT64, obj) 
 
     raise NotImplementedError('pack failed. %s' % obj)
 
@@ -174,4 +179,13 @@ class Parser:
             return POSITIVE_FIXINT_MAP[head]
 
         raise NotImplementedError('get_int failed. %s' % head)
+
+    def get_float(self):
+        head=self.bytedata[0]
+        if head==FLOAT32:
+            return struct.unpack('>f', self.bytedata[1:5])[0]
+        elif head==FLOAT64:
+            return struct.unpack('>d', self.bytedata[1:9])[0]
+        else:
+            raise ValueError('is not float. %s' % head)
 
