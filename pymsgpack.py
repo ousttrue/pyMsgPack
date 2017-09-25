@@ -1,159 +1,194 @@
 import struct
+from enum import Enum
 
-POSITIVE_FIXINT=0x00
 
-NIL=b'\xC0'
+class ValueType(Enum):
+    NIL=0
+    BOOL=1
+    INT=2
+    FLOAT=3
+    BIN=4
+    STRING=5
+    ARRAY=6
+    MAP=7
 
-FALSE=b'\xC2'
-TRUE=b'\xC3'
 
-FLOAT32=0xCA
-FLOAT64=0xCB
+class MsgPackFormat(Enum):
+    POSITIVE_FIXINT=0x00
 
-POSITIVE_FIXINT_MAP={
-        0x00: 0,
-        0x01: 1,
-        0x02: 2,
-        0x03: 3,
-        0x04: 4,
-        0x05: 5,
-        0x06: 6,
-        0x07: 7,
-        0x08: 8,
-        0x09: 9,
-        0x0A: 10,
-        0x0B: 11,
-        0x0C: 12,
-        0x0D: 13,
-        0x0E: 14,
-        0x0F: 15,
-        0x10: 16,
-        0x11: 17,
-        0x12: 18,
-        0x13: 19,
-        0x14: 20,
-        0x15: 21,
-        0x16: 22,
-        0x17: 23,
-        0x18: 24,
-        0x19: 25,
-        0x1A: 26,
-        0x1B: 27,
-        0x1C: 28,
-        0x1D: 29,
-        0x1E: 30,
-        0x1F: 31,
-        0x20: 32,
-        0x21: 33,
-        0x22: 34,
-        0x23: 35,
-        0x24: 36,
-        0x25: 37,
-        0x26: 38,
-        0x27: 39,
-        0x28: 40,
-        0x29: 41,
-        0x2A: 42,
-        0x2B: 43,
-        0x2C: 44,
-        0x2D: 45,
-        0x2E: 46,
-        0x2F: 47,
-        0x30: 48,
-        0x31: 49,
-        0x32: 50,
-        0x33: 51,
-        0x34: 52,
-        0x35: 53,
-        0x36: 54,
-        0x37: 55,
-        0x38: 56,
-        0x39: 57,
-        0x3A: 58,
-        0x3B: 59,
-        0x3C: 60,
-        0x3D: 61,
-        0x3E: 62,
-        0x3F: 63,
-        0x40: 64,
-        0x41: 65,
-        0x42: 66,
-        0x43: 67,
-        0x44: 68,
-        0x45: 69,
-        0x46: 70,
-        0x47: 71,
-        0x48: 72,
-        0x49: 73,
-        0x4A: 74,
-        0x4B: 75,
-        0x4C: 76,
-        0x4D: 77,
-        0x4E: 78,
-        0x4F: 79,
-        0x50: 80,
-        0x51: 81,
-        0x52: 82,
-        0x53: 83,
-        0x54: 84,
-        0x55: 85,
-        0x56: 86,
-        0x57: 87,
-        0x58: 88,
-        0x59: 89,
-        0x5A: 90,
-        0x5B: 91,
-        0x5C: 92,
-        0x5D: 93,
-        0x5E: 94,
-        0x5F: 95,
-        0x60: 96,
-        0x61: 97,
-        0x62: 98,
-        0x63: 99,
-        0x64: 100,
-        0x65: 101,
-        0x66: 102,
-        0x67: 103,
-        0x68: 104,
-        0x69: 105,
-        0x6A: 106,
-        0x6B: 107,
-        0x6C: 108,
-        0x6D: 109,
-        0x6E: 110,
-        0x6F: 111,
-        0x70: 112,
-        0x71: 113,
-        0x72: 114,
-        0x73: 115,
-        0x74: 116,
-        0x75: 117,
-        0x76: 118,
-        0x77: 119,
-        0x78: 120,
-        0x79: 121,
-        0x7A: 122,
-        0x7B: 123,
-        0x7C: 124,
-        0x7D: 125,
-        0x7E: 126,
-        0x7F: 127,
-        }
+    NIL=0xC0
+    FALSE=0xC2
+    TRUE=0xC3
+    FLOAT32=0xCA
+    FLOAT64=0xCB
+    UINT8=0xCC
+    UINT16=0xCD
+    UINT32=0xCE
+    UINT64=0xCF
+
+
+HEAD_MAP={
+        0x00: (ValueType.INT, lambda _: 0),
+        0x01: (ValueType.INT, lambda _: 1),
+        0x02: (ValueType.INT, lambda _: 2),
+        0x03: (ValueType.INT, lambda _: 3),
+        0x04: (ValueType.INT, lambda _: 4),
+        0x05: (ValueType.INT, lambda _: 5),
+        0x06: (ValueType.INT, lambda _: 6),
+        0x07: (ValueType.INT, lambda _: 7),
+        0x08: (ValueType.INT, lambda _: 8),
+        0x09: (ValueType.INT, lambda _: 9),
+        0x0A: (ValueType.INT, lambda _: 10),
+        0x0B: (ValueType.INT, lambda _: 11),
+        0x0C: (ValueType.INT, lambda _: 12),
+        0x0D: (ValueType.INT, lambda _: 13),
+        0x0E: (ValueType.INT, lambda _: 14),
+        0x0F: (ValueType.INT, lambda _: 15),
+        0x10: (ValueType.INT, lambda _: 16),
+        0x11: (ValueType.INT, lambda _: 17),
+        0x12: (ValueType.INT, lambda _: 18),
+        0x13: (ValueType.INT, lambda _: 19),
+        0x14: (ValueType.INT, lambda _: 20),
+        0x15: (ValueType.INT, lambda _: 21),
+        0x16: (ValueType.INT, lambda _: 22),
+        0x17: (ValueType.INT, lambda _: 23),
+        0x18: (ValueType.INT, lambda _: 24),
+        0x19: (ValueType.INT, lambda _: 25),
+        0x1A: (ValueType.INT, lambda _: 26),
+        0x1B: (ValueType.INT, lambda _: 27),
+        0x1C: (ValueType.INT, lambda _: 28),
+        0x1D: (ValueType.INT, lambda _: 29),
+        0x1E: (ValueType.INT, lambda _: 30),
+        0x1F: (ValueType.INT, lambda _: 31),
+        0x20: (ValueType.INT, lambda _: 32),
+        0x21: (ValueType.INT, lambda _: 33),
+        0x22: (ValueType.INT, lambda _: 34),
+        0x23: (ValueType.INT, lambda _: 35),
+        0x24: (ValueType.INT, lambda _: 36),
+        0x25: (ValueType.INT, lambda _: 37),
+        0x26: (ValueType.INT, lambda _: 38),
+        0x27: (ValueType.INT, lambda _: 39),
+        0x28: (ValueType.INT, lambda _: 40),
+        0x29: (ValueType.INT, lambda _: 41),
+        0x2A: (ValueType.INT, lambda _: 42),
+        0x2B: (ValueType.INT, lambda _: 43),
+        0x2C: (ValueType.INT, lambda _: 44),
+        0x2D: (ValueType.INT, lambda _: 45),
+        0x2E: (ValueType.INT, lambda _: 46),
+        0x2F: (ValueType.INT, lambda _: 47),
+        0x30: (ValueType.INT, lambda _: 48),
+        0x31: (ValueType.INT, lambda _: 49),
+        0x32: (ValueType.INT, lambda _: 50),
+        0x33: (ValueType.INT, lambda _: 51),
+        0x34: (ValueType.INT, lambda _: 52),
+        0x35: (ValueType.INT, lambda _: 53),
+        0x36: (ValueType.INT, lambda _: 54),
+        0x37: (ValueType.INT, lambda _: 55),
+        0x38: (ValueType.INT, lambda _: 56),
+        0x39: (ValueType.INT, lambda _: 57),
+        0x3A: (ValueType.INT, lambda _: 58),
+        0x3B: (ValueType.INT, lambda _: 59),
+        0x3C: (ValueType.INT, lambda _: 60),
+        0x3D: (ValueType.INT, lambda _: 61),
+        0x3E: (ValueType.INT, lambda _: 62),
+        0x3F: (ValueType.INT, lambda _: 63),
+        0x40: (ValueType.INT, lambda _: 64),
+        0x41: (ValueType.INT, lambda _: 65),
+        0x42: (ValueType.INT, lambda _: 66),
+        0x43: (ValueType.INT, lambda _: 67),
+        0x44: (ValueType.INT, lambda _: 68),
+        0x45: (ValueType.INT, lambda _: 69),
+        0x46: (ValueType.INT, lambda _: 70),
+        0x47: (ValueType.INT, lambda _: 71),
+        0x48: (ValueType.INT, lambda _: 72),
+        0x49: (ValueType.INT, lambda _: 73),
+        0x4A: (ValueType.INT, lambda _: 74),
+        0x4B: (ValueType.INT, lambda _: 75),
+        0x4C: (ValueType.INT, lambda _: 76),
+        0x4D: (ValueType.INT, lambda _: 77),
+        0x4E: (ValueType.INT, lambda _: 78),
+        0x4F: (ValueType.INT, lambda _: 79),
+        0x50: (ValueType.INT, lambda _: 80),
+        0x51: (ValueType.INT, lambda _: 81),
+        0x52: (ValueType.INT, lambda _: 82),
+        0x53: (ValueType.INT, lambda _: 83),
+        0x54: (ValueType.INT, lambda _: 84),
+        0x55: (ValueType.INT, lambda _: 85),
+        0x56: (ValueType.INT, lambda _: 86),
+        0x57: (ValueType.INT, lambda _: 87),
+        0x58: (ValueType.INT, lambda _: 88),
+        0x59: (ValueType.INT, lambda _: 89),
+        0x5A: (ValueType.INT, lambda _: 90),
+        0x5B: (ValueType.INT, lambda _: 91),
+        0x5C: (ValueType.INT, lambda _: 92),
+        0x5D: (ValueType.INT, lambda _: 93),
+        0x5E: (ValueType.INT, lambda _: 94),
+        0x5F: (ValueType.INT, lambda _: 95),
+        0x60: (ValueType.INT, lambda _: 96),
+        0x61: (ValueType.INT, lambda _: 97),
+        0x62: (ValueType.INT, lambda _: 98),
+        0x63: (ValueType.INT, lambda _: 99),
+        0x64: (ValueType.INT, lambda _: 100),
+        0x65: (ValueType.INT, lambda _: 101),
+        0x66: (ValueType.INT, lambda _: 102),
+        0x67: (ValueType.INT, lambda _: 103),
+        0x68: (ValueType.INT, lambda _: 104),
+        0x69: (ValueType.INT, lambda _: 105),
+        0x6A: (ValueType.INT, lambda _: 106),
+        0x6B: (ValueType.INT, lambda _: 107),
+        0x6C: (ValueType.INT, lambda _: 108),
+        0x6D: (ValueType.INT, lambda _: 109),
+        0x6E: (ValueType.INT, lambda _: 110),
+        0x6F: (ValueType.INT, lambda _: 111),
+        0x70: (ValueType.INT, lambda _: 112),
+        0x71: (ValueType.INT, lambda _: 113),
+        0x72: (ValueType.INT, lambda _: 114),
+        0x73: (ValueType.INT, lambda _: 115),
+        0x74: (ValueType.INT, lambda _: 116),
+        0x75: (ValueType.INT, lambda _: 117),
+        0x76: (ValueType.INT, lambda _: 118),
+        0x77: (ValueType.INT, lambda _: 119),
+        0x78: (ValueType.INT, lambda _: 120),
+        0x79: (ValueType.INT, lambda _: 121),
+        0x7A: (ValueType.INT, lambda _: 122),
+        0x7B: (ValueType.INT, lambda _: 123),
+        0x7C: (ValueType.INT, lambda _: 124),
+        0x7D: (ValueType.INT, lambda _: 125),
+        0x7E: (ValueType.INT, lambda _: 126),
+        0x7F: (ValueType.INT, lambda _: 127),
+
+        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: struct.unpack('>f', b)[0]),
+        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: struct.unpack('>d', b)[0]),
+        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: struct.unpack('>B', b)[0]),
+        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: struct.unpack('>H', b)[0]),
+        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: struct.unpack('>I', b)[0]),
+        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: struct.unpack('>Q', b)[0]),
+}
 
 
 def pack(obj):
     if obj is None:
-        return NIL
+        return struct.pack('B', MsgPackFormat.NIL.value)
     elif obj is False:
-        return FALSE
+        return struct.pack('B', MsgPackFormat.FALSE.value)
     elif obj is True:
-        return TRUE
+        return struct.pack('B', MsgPackFormat.TRUE.value)
     elif isinstance(obj, int):
-        if obj>=0 and obj<= 0x7f:
-            return struct.pack('b', obj)
+        if obj>=0:
+            if obj<= 0x7f:
+                return struct.pack('b', obj)
+            elif obj<= 0xFF:
+                return struct.pack('>BB', MsgPackFormat.UINT8.value, obj)
+            elif obj<= 0xFFFF:
+                return struct.pack('>BH', MsgPackFormat.UINT16.value, obj)
+            elif obj<= 0xFFFFFFFF:
+                return struct.pack('>BI', MsgPackFormat.UINT32.value, obj)
+            elif obj<= 0xFFFFFFFFFFFFFFFF:
+                return struct.pack('>BQ', MsgPackFormat.UINT64.value, obj)
+            else:
+                raise OverflowError('pack failed. %s' % obj)
     elif isinstance(obj, float):
-        return struct.pack('>Bd', FLOAT64, obj) 
+        return struct.pack('>Bd', MsgPackFormat.FLOAT64.value, obj) 
 
     raise NotImplementedError('pack failed. %s' % obj)
 
@@ -163,24 +198,21 @@ class Parser:
         self.bytedata=bytedata
 
     def is_nil(self):
-        return self.bytedata[0:1]==NIL
+        return self.bytedata[0]==MsgPackFormat.NIL.value
 
     def get_bool(self):
-        if self.bytedata[0:1]==FALSE:
+        head=self.bytedata[0]
+        if head==MsgPackFormat.FALSE.value:
             return False
-        elif self.bytedata[0:1]==TRUE:
+        elif head==MsgPackFormat.TRUE.value:
             return True
 
-        raise NotImplementedError('parse failed. %s' % self.bytedata[0:1])
+        raise NotImplementedError('parse failed. 0x%02x' % head)
 
     def get_number(self):
         head=self.bytedata[0]
-        if head==FLOAT32:
-            return struct.unpack('>f', self.bytedata[1:5])[0]
-        elif head==FLOAT64:
-            return struct.unpack('>d', self.bytedata[1:9])[0]
-        elif head in POSITIVE_FIXINT_MAP:
-            return POSITIVE_FIXINT_MAP[head]
+        if head in HEAD_MAP:
+            return HEAD_MAP[head][1](self.bytedata[1:])
 
-        raise NotImplementedError('get_int failed. %s' % head)
+        raise NotImplementedError('get_number failed. 0x%02x' % head)
 

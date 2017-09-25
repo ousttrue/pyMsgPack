@@ -30,6 +30,9 @@ class TestPyMsgPack(unittest.TestCase):
         self.assertTrue(parsed.get_bool())
 
     def test_number(self):
+        #
+        # positive fixint
+        #
         def _positive(n, base):
             # pack
             packed=pymsgpack.pack(n)
@@ -39,24 +42,41 @@ class TestPyMsgPack(unittest.TestCase):
             parsed=pymsgpack.Parser(packed)
             self.assertEquals(n, parsed.get_number())
 
-        # positive fixint
         for i in range(0, 0x80):
             _positive(i, 0)
 
 
+        #
+        # numbers
+        #
         def _number(src, fmt, head):
             dst=struct.pack(fmt, head, src)
             packed=pymsgpack.pack(src)
-            self.assertAlmostEqual(dst, packed)
+            if isinstance(src, float):
+                self.assertAlmostEqual(dst, packed)
+            else:
+                self.assertEqual(dst, packed)
 
             parsed=pymsgpack.Parser(packed)
-            self.assertAlmostEqual(src, parsed.get_number())
+            if isinstance(src, float):
+                self.assertAlmostEqual(src, parsed.get_number())
+            else:
+                self.assertEqual(src, parsed.get_number())
 
         # float
         _number(1.2, '>Bd', 0xcb)
 
         # uint8
-        #_number(0x80, '>BB', 0xcc)
+        _number(0x80, '>BB', 0xcc)
+
+        # uint16
+        _number(0x100, '>BH', 0xcd)
+
+        # uint32
+        _number(0x10000, '>BI', 0xce)
+
+        # uint64
+        _number(0x100000000, '>BQ', 0xcf)
 
 
 if __name__ == '__main__':
