@@ -29,6 +29,20 @@ class TestPyMsgPack(unittest.TestCase):
         parsed=pymsgpack.Parser(packed)
         self.assertTrue(parsed.get_bool())
 
+    def _test_number(self, n, base):
+        # pack
+        packed=pymsgpack.pack(n)
+        self.assertEquals(struct.pack('B', base+n), packed)
+
+        # parse
+        parsed=pymsgpack.Parser(packed)
+        self.assertEquals(n, parsed.get_int())
+
+    def test_int(self):
+        # positive fixint
+        for i in range(0, 0x80):
+            self._test_number(i, 0)
+
 
 if __name__ == '__main__':
     print(type(True))
