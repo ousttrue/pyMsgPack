@@ -173,19 +173,14 @@ class Parser:
 
         raise NotImplementedError('parse failed. %s' % self.bytedata[0:1])
 
-    def get_int(self):
-        head=self.bytedata[0]
-        if head in POSITIVE_FIXINT_MAP:
-            return POSITIVE_FIXINT_MAP[head]
-
-        raise NotImplementedError('get_int failed. %s' % head)
-
-    def get_float(self):
+    def get_number(self):
         head=self.bytedata[0]
         if head==FLOAT32:
             return struct.unpack('>f', self.bytedata[1:5])[0]
         elif head==FLOAT64:
             return struct.unpack('>d', self.bytedata[1:9])[0]
-        else:
-            raise ValueError('is not float. %s' % head)
+        elif head in POSITIVE_FIXINT_MAP:
+            return POSITIVE_FIXINT_MAP[head]
+
+        raise NotImplementedError('get_int failed. %s' % head)
 
