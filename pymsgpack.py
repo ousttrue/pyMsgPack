@@ -21,6 +21,9 @@ class MsgPackFormat(Enum):
     NIL=0xC0
     FALSE=0xC2
     TRUE=0xC3
+    BIN8=0xC4
+    BIN16=0xC5
+    BIN32=0xC6
     FLOAT32=0xCA
     FLOAT64=0xCB
     UINT8=0xCC
@@ -247,6 +250,9 @@ BODY_MAP={
         0xD9: (ValueType.STR, lambda b: b[1:1+struct.unpack('B', b[:1])[0]]),
         0xDA: (ValueType.STR, lambda b: b[2:2+struct.unpack('>H', b[:2])[0]]),
         0xDB: (ValueType.STR, lambda b: b[4:4+struct.unpack('>I', b[:4])[0]]),
+        0xC4: (ValueType.BIN, lambda b: b[1:1+struct.unpack('B', b[:1])[0]]),
+        0xC5: (ValueType.BIN, lambda b: b[2:2+struct.unpack('>H', b[:2])[0]]),
+        0xC6: (ValueType.BIN, lambda b: b[4:4+struct.unpack('>I', b[:4])[0]]),
         }
 
 
@@ -304,6 +310,19 @@ def pack(obj):
         else:
             raise OverflowError('pack failed. %s' % obj)
 
+    elif isinstance(obj, bytes) or isinstance(obj, bytearray):
+        bin_len=len(obj)
+        if bin_len==0:
+            return struct.pack('B', MsgPackFormat.BIN8.value)
+        elif bin_len<=0xFF:
+            return struct.pack('BB%ds' % bin_len, MsgPackFormat.BIN8.value, bin_len, obj)
+        elif bin_len<=0xFFFF:
+            return struct.pack('>BH%ds' % bin_len, MsgPackFormat.BIN16.value, bin_len, obj)
+        elif bin_len<=0xFFFFFFFF:
+            return struct.pack('>BI%ds' % bin_len, MsgPackFormat.BIN32.value, bin_len, obj)
+        else:
+            raise OverflowError('pack failed. %s' % obj)
+
     raise NotImplementedError('pack failed. %s' % obj)
 
 
@@ -321,18 +340,31 @@ class Parser:
         elif head==MsgPackFormat.TRUE.value:
             return True
 
-        raise NotImplementedError('parse failed. 0x%02x' % head)
+        raise ValueError('is not bool. 0x%02x' % head)
 
     def get_number(self):
         head=self.bytedata[0]
         if head in NUMBER_MAP:
             return NUMBER_MAP[head][1](self.bytedata[1:])
 
-        raise NotImplementedError('get_number failed. 0x%02x' % head)
+        raise ValueError('is not number. 0x%02x' % head)
 
     def get_str(self):
         head=self.bytedata[0]
         if head in BODY_MAP:
-            body=BODY_MAP[head][1](self.bytedata[1:])
-            return body.decode('utf-8')
+            t, get_body=BODY_MAP[head]
+            if t==ValueType.STR:
+                return get_body(self.bytedata[1:]).decode('utf-8')
+
+        raise ValueError('is not str. 0x%02x' % head)
+
+    def get_bin(self):
+        head=self.bytedata[0]
+        if head in BODY_MAP:
+            t, get_body=BODY_MAP[head]
+            if t==ValueType.BIN:
+                return get_body(self.bytedata[1:])
+
+        raise ValueError('is not bin. 0x%02x' % head)
+
 

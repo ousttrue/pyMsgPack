@@ -3,6 +3,7 @@ import pymsgpack
 import struct
 import random
 import string
+import os
 
 
 class TestPyMsgPack(unittest.TestCase):
@@ -134,6 +135,25 @@ class TestPyMsgPack(unittest.TestCase):
         _test_longstr(random_str(256), '>BH%ds', 0xda)
         # str32
         _test_longstr(random_str(65536), '>BI%ds', 0xdb)
+
+    def test_bin(self):
+        def _test_bin(src, fmt, head):
+            # pack
+            packed=pymsgpack.pack(src)
+            src_len=len(src)
+            _fmt=fmt % src_len
+            self.assertEqual(struct.pack(_fmt, head, src_len, src), packed)
+            # parse
+            parsed=pymsgpack.Parser(packed)
+            self.assertEqual(src, parsed.get_bin())
+
+        # bin8
+        _test_bin(os.urandom(32), 'BB%ds', 0xc4)
+        # bin16
+        _test_bin(os.urandom(256), '>BH%ds', 0xc5)
+        # bin32
+        _test_bin(os.urandom(65536), '>BI%ds', 0xc6)
+
 
 
 if __name__ == '__main__':
