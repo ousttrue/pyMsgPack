@@ -1,6 +1,8 @@
 import unittest
 import pymsgpack
 import struct
+import random
+import string
 
 
 class TestPyMsgPack(unittest.TestCase):
@@ -97,6 +99,23 @@ class TestPyMsgPack(unittest.TestCase):
         _number(-32768-1, '>Bi', 0xd2)
         # int64
         _number(-2147483648-1, '>Bq', 0xd3)
+
+    def test_str(self):
+        def random_str(n):
+            return ''.join([random.choice(string.ascii_letters + string.digits) for i in range(n)])
+
+        def _test_str(src):
+            # pack
+            packed=pymsgpack.pack(src)
+            utf8=src.encode('utf-8')
+            fmt='B%ds' % len(utf8)
+            self.assertEquals(struct.pack(fmt, 0xa0 + len(utf8), utf8), packed)
+            # parse
+            parsed=pymsgpack.Parser(packed)
+            self.assertEquals(src, parsed.get_str())
+
+        for i in range(1, 32):
+            _test_str(random_str(i))
 
 
 if __name__ == '__main__':

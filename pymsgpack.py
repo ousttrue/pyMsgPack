@@ -8,12 +8,16 @@ class ValueType(Enum):
     INT=2
     FLOAT=3
     BIN=4
-    STRING=5
+    STR=5
     ARRAY=6
     MAP=7
 
 
 class MsgPackFormat(Enum):
+    POSITIVE_FIXINT=0x00
+    FIXMAP=0x80
+    FIXARRAY=0x90
+    FIXSTR=0xA0
     NIL=0xC0
     FALSE=0xC2
     TRUE=0xC3
@@ -29,7 +33,7 @@ class MsgPackFormat(Enum):
     INT64=0xD3
 
 
-HEAD_MAP={
+NUMBER_MAP={
         0x00: (ValueType.INT, lambda _: 0),
         0x01: (ValueType.INT, lambda _: 1),
         0x02: (ValueType.INT, lambda _: 2),
@@ -204,6 +208,41 @@ HEAD_MAP={
         MsgPackFormat.INT64.value: (ValueType.INT, lambda b: struct.unpack('>q', b)[0]),
 }
 
+BODY_MAP={
+        0xA0: (ValueType.STR, lambda b: b''),
+        0xA1: (ValueType.STR, lambda b: b[:1]),
+        0xA2: (ValueType.STR, lambda b: b[:2]),
+        0xA3: (ValueType.STR, lambda b: b[:3]),
+        0xA4: (ValueType.STR, lambda b: b[:4]),
+        0xA5: (ValueType.STR, lambda b: b[:5]),
+        0xA6: (ValueType.STR, lambda b: b[:6]),
+        0xA7: (ValueType.STR, lambda b: b[:7]),
+        0xA8: (ValueType.STR, lambda b: b[:8]),
+        0xA9: (ValueType.STR, lambda b: b[:9]),
+        0xAA: (ValueType.STR, lambda b: b[:10]),
+        0xAB: (ValueType.STR, lambda b: b[:11]),
+        0xAC: (ValueType.STR, lambda b: b[:12]),
+        0xAD: (ValueType.STR, lambda b: b[:13]),
+        0xAE: (ValueType.STR, lambda b: b[:14]),
+        0xAF: (ValueType.STR, lambda b: b[:15]),
+        0xB0: (ValueType.STR, lambda b: b[:16]),
+        0xB1: (ValueType.STR, lambda b: b[:17]),
+        0xB2: (ValueType.STR, lambda b: b[:18]),
+        0xB3: (ValueType.STR, lambda b: b[:19]),
+        0xB4: (ValueType.STR, lambda b: b[:20]),
+        0xB5: (ValueType.STR, lambda b: b[:21]),
+        0xB6: (ValueType.STR, lambda b: b[:22]),
+        0xB7: (ValueType.STR, lambda b: b[:23]),
+        0xB8: (ValueType.STR, lambda b: b[:24]),
+        0xB9: (ValueType.STR, lambda b: b[:25]),
+        0xBA: (ValueType.STR, lambda b: b[:26]),
+        0xBB: (ValueType.STR, lambda b: b[:27]),
+        0xBC: (ValueType.STR, lambda b: b[:28]),
+        0xBD: (ValueType.STR, lambda b: b[:29]),
+        0xBE: (ValueType.STR, lambda b: b[:30]),
+        0xBF: (ValueType.STR, lambda b: b[:31]),
+        }
+
 
 def pack(obj):
     if obj is None:
@@ -243,6 +282,15 @@ def pack(obj):
     elif isinstance(obj, float):
         return struct.pack('>Bd', MsgPackFormat.FLOAT64.value, obj) 
 
+    elif isinstance(obj, str):
+        utf8=obj.encode('utf-8')
+        utf8_len=len(utf8)
+        if utf8_len==0:
+            return struct.pack('B', MsgPackFormat.FIXSTR.value)
+        elif utf8_len<32:
+            fmt='B%ds' % utf8_len
+            return struct.pack(fmt, MsgPackFormat.FIXSTR.value+utf8_len, utf8)
+
     raise NotImplementedError('pack failed. %s' % obj)
 
 
@@ -264,8 +312,14 @@ class Parser:
 
     def get_number(self):
         head=self.bytedata[0]
-        if head in HEAD_MAP:
-            return HEAD_MAP[head][1](self.bytedata[1:])
+        if head in NUMBER_MAP:
+            return NUMBER_MAP[head][1](self.bytedata[1:])
 
         raise NotImplementedError('get_number failed. 0x%02x' % head)
+
+    def get_str(self):
+        head=self.bytedata[0]
+        if head in BODY_MAP:
+            body=BODY_MAP[head][1](self.bytedata[1:])
+            return body.decode('utf-8')
 
