@@ -14,8 +14,6 @@ class ValueType(Enum):
 
 
 class MsgPackFormat(Enum):
-    POSITIVE_FIXINT=0x00
-
     NIL=0xC0
     FALSE=0xC2
     TRUE=0xC3
@@ -25,6 +23,10 @@ class MsgPackFormat(Enum):
     UINT16=0xCD
     UINT32=0xCE
     UINT64=0xCF
+    INT8=0xD0
+    INT16=0xD1
+    INT32=0xD2
+    INT64=0xD3
 
 
 HEAD_MAP={
@@ -157,12 +159,49 @@ HEAD_MAP={
         0x7E: (ValueType.INT, lambda _: 126),
         0x7F: (ValueType.INT, lambda _: 127),
 
+        0xE0: (ValueType.INT, lambda _: -32),
+        0xE1: (ValueType.INT, lambda _: -31),
+        0xE2: (ValueType.INT, lambda _: -30),
+        0xE3: (ValueType.INT, lambda _: -29),
+        0xE4: (ValueType.INT, lambda _: -28),
+        0xE5: (ValueType.INT, lambda _: -27),
+        0xE6: (ValueType.INT, lambda _: -26),
+        0xE7: (ValueType.INT, lambda _: -25),
+        0xE8: (ValueType.INT, lambda _: -24),
+        0xE9: (ValueType.INT, lambda _: -23),
+        0xEA: (ValueType.INT, lambda _: -22),
+        0xEB: (ValueType.INT, lambda _: -21),
+        0xEC: (ValueType.INT, lambda _: -20),
+        0xED: (ValueType.INT, lambda _: -19),
+        0xEE: (ValueType.INT, lambda _: -18),
+        0xEF: (ValueType.INT, lambda _: -17),
+        0xF0: (ValueType.INT, lambda _: -16),
+        0xF1: (ValueType.INT, lambda _: -15),
+        0xF2: (ValueType.INT, lambda _: -14),
+        0xF3: (ValueType.INT, lambda _: -13),
+        0xF4: (ValueType.INT, lambda _: -12),
+        0xF5: (ValueType.INT, lambda _: -11),
+        0xF6: (ValueType.INT, lambda _: -10),
+        0xF7: (ValueType.INT, lambda _: -9),
+        0xF8: (ValueType.INT, lambda _: -8),
+        0xF9: (ValueType.INT, lambda _: -7),
+        0xFA: (ValueType.INT, lambda _: -6),
+        0xFB: (ValueType.INT, lambda _: -5),
+        0xFC: (ValueType.INT, lambda _: -4),
+        0xFD: (ValueType.INT, lambda _: -3),
+        0xFE: (ValueType.INT, lambda _: -2),
+        0xFF: (ValueType.INT, lambda _: -1),
+
         MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: struct.unpack('>f', b)[0]),
         MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: struct.unpack('>d', b)[0]),
         MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: struct.unpack('>B', b)[0]),
         MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: struct.unpack('>H', b)[0]),
         MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: struct.unpack('>I', b)[0]),
         MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: struct.unpack('>Q', b)[0]),
+        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: struct.unpack('>b', b)[0]),
+        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: struct.unpack('>h', b)[0]),
+        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: struct.unpack('>i', b)[0]),
+        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: struct.unpack('>q', b)[0]),
 }
 
 
@@ -187,6 +226,20 @@ def pack(obj):
                 return struct.pack('>BQ', MsgPackFormat.UINT64.value, obj)
             else:
                 raise OverflowError('pack failed. %s' % obj)
+        else:
+            if obj>=-32:
+                return struct.pack('B', 0x100 + obj)
+            elif obj>= -128:
+                return struct.pack('>Bb', MsgPackFormat.INT8.value, obj)
+            elif obj>= -32768:
+                return struct.pack('>Bh', MsgPackFormat.INT16.value, obj)
+            elif obj>= -2147483648:
+                return struct.pack('>Bi', MsgPackFormat.INT32.value, obj)
+            elif obj>= -9223372036854775808:
+                return struct.pack('>Bq', MsgPackFormat.INT64.value, obj)
+            else:
+                raise OverflowError('pack failed. %s' % obj)
+
     elif isinstance(obj, float):
         return struct.pack('>Bd', MsgPackFormat.FLOAT64.value, obj) 
 

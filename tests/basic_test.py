@@ -33,18 +33,32 @@ class TestPyMsgPack(unittest.TestCase):
         #
         # positive fixint
         #
-        def _positive(n, base):
+        def _positive(n):
             # pack
             packed=pymsgpack.pack(n)
-            self.assertEquals(struct.pack('B', base+n), packed)
-
+            self.assertEquals(struct.pack('B', n), packed)
             # parse
             parsed=pymsgpack.Parser(packed)
             self.assertEquals(n, parsed.get_number())
 
         for i in range(0, 0x80):
-            _positive(i, 0)
+            _positive(i)
 
+        #
+        # negative
+        #
+        def _negative(n):
+            # pack
+            packed=pymsgpack.pack(n)
+            self.assertEquals(struct.pack('B', 0x100+n), packed)
+            # parse
+            parsed=pymsgpack.Parser(packed)
+            self.assertEquals(n, parsed.get_number())
+
+        self.assertEquals(0xFF, pymsgpack.pack(-1)[0])
+        self.assertEquals(0xE0, pymsgpack.pack(-32)[0])
+        for i in range(-32, 0):
+            _negative(i)
 
         #
         # numbers
@@ -68,18 +82,23 @@ class TestPyMsgPack(unittest.TestCase):
 
         # uint8
         _number(0x80, '>BB', 0xcc)
-
         # uint16
         _number(0x100, '>BH', 0xcd)
-
         # uint32
         _number(0x10000, '>BI', 0xce)
-
         # uint64
         _number(0x100000000, '>BQ', 0xcf)
 
+        # int8
+        _number(-32-1, '>Bb', 0xd0)
+        # int16
+        _number(-128-1, '>Bh', 0xd1)
+        # int32
+        _number(-32768-1, '>Bi', 0xd2)
+        # int64
+        _number(-2147483648-1, '>Bq', 0xd3)
+
 
 if __name__ == '__main__':
-    print(type(True))
     unittest.main()
 
