@@ -10,7 +10,7 @@ class TestPyMsgPack(unittest.TestCase):
     def test_nil(self):
         # pack
         packed=pymsgpack.pack(None)
-        self.assertEquals(struct.pack('B', 0xc0), packed)
+        self.assertEqual(struct.pack('B', 0xc0), packed)
         # parse
         parsed=pymsgpack.Parser(packed)
         self.assertTrue(parsed.is_nil())
@@ -18,7 +18,7 @@ class TestPyMsgPack(unittest.TestCase):
     def test_false(self):
         # pack
         packed=pymsgpack.pack(False)
-        self.assertEquals(struct.pack('B', 0xc2), packed)
+        self.assertEqual(struct.pack('B', 0xc2), packed)
         # parse
         parsed=pymsgpack.Parser(packed)
         self.assertFalse(parsed.get_bool())
@@ -26,7 +26,7 @@ class TestPyMsgPack(unittest.TestCase):
     def test_true(self):
         # pack
         packed=pymsgpack.pack(True)
-        self.assertEquals(struct.pack('B', 0xc3), packed)
+        self.assertEqual(struct.pack('B', 0xc3), packed)
         # parse
         parsed=pymsgpack.Parser(packed)
         self.assertTrue(parsed.get_bool())
@@ -38,10 +38,10 @@ class TestPyMsgPack(unittest.TestCase):
         def _positive(n):
             # pack
             packed=pymsgpack.pack(n)
-            self.assertEquals(struct.pack('B', n), packed)
+            self.assertEqual(struct.pack('B', n), packed)
             # parse
             parsed=pymsgpack.Parser(packed)
-            self.assertEquals(n, parsed.get_number())
+            self.assertEqual(n, parsed.get_number())
 
         for i in range(0, 0x80):
             _positive(i)
@@ -52,13 +52,13 @@ class TestPyMsgPack(unittest.TestCase):
         def _negative(n):
             # pack
             packed=pymsgpack.pack(n)
-            self.assertEquals(struct.pack('B', 0x100+n), packed)
+            self.assertEqual(struct.pack('B', 0x100+n), packed)
             # parse
             parsed=pymsgpack.Parser(packed)
-            self.assertEquals(n, parsed.get_number())
+            self.assertEqual(n, parsed.get_number())
 
-        self.assertEquals(0xFF, pymsgpack.pack(-1)[0])
-        self.assertEquals(0xE0, pymsgpack.pack(-32)[0])
+        self.assertEqual(0xFF, pymsgpack.pack(-1)[0])
+        self.assertEqual(0xE0, pymsgpack.pack(-32)[0])
         for i in range(-32, 0):
             _negative(i)
 
@@ -109,13 +109,31 @@ class TestPyMsgPack(unittest.TestCase):
             packed=pymsgpack.pack(src)
             utf8=src.encode('utf-8')
             fmt='B%ds' % len(utf8)
-            self.assertEquals(struct.pack(fmt, 0xa0 + len(utf8), utf8), packed)
+            self.assertEqual(struct.pack(fmt, 0xa0 + len(utf8), utf8), packed)
             # parse
             parsed=pymsgpack.Parser(packed)
-            self.assertEquals(src, parsed.get_str())
+            self.assertEqual(src, parsed.get_str())
 
         for i in range(1, 32):
             _test_str(random_str(i))
+
+        def _test_longstr(src, fmt, head):
+            # pack
+            packed=pymsgpack.pack(src)
+            utf8=src.encode('utf-8')
+            utf8_len=len(utf8)
+            _fmt=fmt % utf8_len
+            self.assertEqual(struct.pack(_fmt, head, utf8_len, utf8), packed)
+            # parse
+            parsed=pymsgpack.Parser(packed)
+            self.assertEqual(src, parsed.get_str())
+
+        # str8
+        _test_longstr(random_str(32), 'BB%ds', 0xd9)
+        # str16
+        _test_longstr(random_str(256), '>BH%ds', 0xda)
+        # str32
+        _test_longstr(random_str(65536), '>BI%ds', 0xdb)
 
 
 if __name__ == '__main__':

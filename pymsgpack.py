@@ -31,6 +31,9 @@ class MsgPackFormat(Enum):
     INT16=0xD1
     INT32=0xD2
     INT64=0xD3
+    STR8=0xD9
+    STR16=0xDA
+    STR32=0xDB
 
 
 NUMBER_MAP={
@@ -241,6 +244,9 @@ BODY_MAP={
         0xBD: (ValueType.STR, lambda b: b[:29]),
         0xBE: (ValueType.STR, lambda b: b[:30]),
         0xBF: (ValueType.STR, lambda b: b[:31]),
+        0xD9: (ValueType.STR, lambda b: b[1:1+struct.unpack('B', b[:1])[0]]),
+        0xDA: (ValueType.STR, lambda b: b[2:2+struct.unpack('>H', b[:2])[0]]),
+        0xDB: (ValueType.STR, lambda b: b[4:4+struct.unpack('>I', b[:4])[0]]),
         }
 
 
@@ -288,8 +294,15 @@ def pack(obj):
         if utf8_len==0:
             return struct.pack('B', MsgPackFormat.FIXSTR.value)
         elif utf8_len<32:
-            fmt='B%ds' % utf8_len
-            return struct.pack(fmt, MsgPackFormat.FIXSTR.value+utf8_len, utf8)
+            return struct.pack('B%ds' % utf8_len, MsgPackFormat.FIXSTR.value+utf8_len, utf8)
+        elif utf8_len<=0xFF:
+            return struct.pack('BB%ds' % utf8_len, MsgPackFormat.STR8.value, utf8_len, utf8)
+        elif utf8_len<=0xFFFF:
+            return struct.pack('>BH%ds' % utf8_len, MsgPackFormat.STR16.value, utf8_len, utf8)
+        elif utf8_len<=0xFFFFFFFF:
+            return struct.pack('>BI%ds' % utf8_len, MsgPackFormat.STR32.value, utf8_len, utf8)
+        else:
+            raise OverflowError('pack failed. %s' % obj)
 
     raise NotImplementedError('pack failed. %s' % obj)
 
