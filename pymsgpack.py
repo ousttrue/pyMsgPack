@@ -172,49 +172,12 @@ HEAD_MAP={
         0x7E: (ValueType.INT, lambda b: (126, b)),
         0x7F: (ValueType.INT, lambda b: (127, b)),
 
-        0xE0: (ValueType.INT, lambda b: (-32, b)),
-        0xE1: (ValueType.INT, lambda b: (-31, b)),
-        0xE2: (ValueType.INT, lambda b: (-30, b)),
-        0xE3: (ValueType.INT, lambda b: (-29, b)),
-        0xE4: (ValueType.INT, lambda b: (-28, b)),
-        0xE5: (ValueType.INT, lambda b: (-27, b)),
-        0xE6: (ValueType.INT, lambda b: (-26, b)),
-        0xE7: (ValueType.INT, lambda b: (-25, b)),
-        0xE8: (ValueType.INT, lambda b: (-24, b)),
-        0xE9: (ValueType.INT, lambda b: (-23, b)),
-        0xEA: (ValueType.INT, lambda b: (-22, b)),
-        0xEB: (ValueType.INT, lambda b: (-21, b)),
-        0xEC: (ValueType.INT, lambda b: (-20, b)),
-        0xED: (ValueType.INT, lambda b: (-19, b)),
-        0xEE: (ValueType.INT, lambda b: (-18, b)),
-        0xEF: (ValueType.INT, lambda b: (-17, b)),
-        0xF0: (ValueType.INT, lambda b: (-16, b)),
-        0xF1: (ValueType.INT, lambda b: (-15, b)),
-        0xF2: (ValueType.INT, lambda b: (-14, b)),
-        0xF3: (ValueType.INT, lambda b: (-13, b)),
-        0xF4: (ValueType.INT, lambda b: (-12, b)),
-        0xF5: (ValueType.INT, lambda b: (-11, b)),
-        0xF6: (ValueType.INT, lambda b: (-10, b)),
-        0xF7: (ValueType.INT, lambda b: (-9, b)),
-        0xF8: (ValueType.INT, lambda b: (-8, b)),
-        0xF9: (ValueType.INT, lambda b: (-7, b)),
-        0xFA: (ValueType.INT, lambda b: (-6, b)),
-        0xFB: (ValueType.INT, lambda b: (-5, b)),
-        0xFC: (ValueType.INT, lambda b: (-4, b)),
-        0xFD: (ValueType.INT, lambda b: (-3, b)),
-        0xFE: (ValueType.INT, lambda b: (-2, b)),
-        0xFF: (ValueType.INT, lambda b: (-1, b)),
+        #0x80:
 
-        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b)[0], b[1:])),
-        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b)[0], b[1:])),
-        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: (struct.unpack('>B', b)[0], b[1:])),
-        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: (struct.unpack('>H', b)[0], b[1:])),
-        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: (struct.unpack('>I', b)[0], b[1:])),
-        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: (struct.unpack('>Q', b)[0], b[1:])),
-        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: (struct.unpack('>b', b)[0], b[1:])),
-        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: (struct.unpack('>h', b)[0], b[1:])),
-        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: (struct.unpack('>i', b)[0], b[1:])),
-        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: (struct.unpack('>q', b)[0], b[1:])),
+        0x90: (ValueType.ARRAY, lambda b: (0, b)),
+        0x91: (ValueType.ARRAY, lambda b: (1, b)),
+        0x92: (ValueType.ARRAY, lambda b: (2, b)),
+        0x93: (ValueType.ARRAY, lambda b: (3, b)),
 
         0xA0: (ValueType.STR, lambda b: split_index(b, 0, 0)),
         0xA1: (ValueType.STR, lambda b: split_index(b, 0, 1)),
@@ -248,17 +211,67 @@ HEAD_MAP={
         0xBD: (ValueType.STR, lambda b: split_index(b, 0, 29)),
         0xBE: (ValueType.STR, lambda b: split_index(b, 0, 30)),
         0xBF: (ValueType.STR, lambda b: split_index(b, 0, 31)),
-        0xD9: (ValueType.STR, lambda b: split_index(b, 1, struct.unpack('B', b[:1])[0])),
-        0xDA: (ValueType.STR, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
-        0xDB: (ValueType.STR, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
+
+        0xC0: (ValueType.NIL, lambda b: (None, b)),
+        0xC2: (ValueType.BOOL, lambda b: (False, b)),
+        0xC3: (ValueType.BOOL, lambda b: (True, b)),
+
         0xC4: (ValueType.BIN, lambda b: split_index(b, 1, struct.unpack('B', b[:1])[0])),
         0xC5: (ValueType.BIN, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
         0xC6: (ValueType.BIN, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
 
-        0x90: (ValueType.ARRAY, lambda b: (0, b)),
-        0x91: (ValueType.ARRAY, lambda b: (1, b)),
-        0x92: (ValueType.ARRAY, lambda b: (2, b)),
-        0x93: (ValueType.ARRAY, lambda b: (3, b)),
+        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b)[0], b[1:])),
+        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b)[0], b[1:])),
+        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: (struct.unpack('>B', b)[0], b[1:])),
+        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: (struct.unpack('>H', b)[0], b[1:])),
+        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: (struct.unpack('>I', b)[0], b[1:])),
+        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: (struct.unpack('>Q', b)[0], b[1:])),
+        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: (struct.unpack('>b', b)[0], b[1:])),
+        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: (struct.unpack('>h', b)[0], b[1:])),
+        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: (struct.unpack('>i', b)[0], b[1:])),
+        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: (struct.unpack('>q', b)[0], b[1:])),
+
+        0xD9: (ValueType.STR, lambda b: split_index(b, 1, struct.unpack('B', b[:1])[0])),
+        0xDA: (ValueType.STR, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
+        0xDB: (ValueType.STR, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
+
+        # 0xDC
+        # 0xDD
+        # 0xDE
+        # 0xDF
+
+        0xE0: (ValueType.INT, lambda b: (-32, b)),
+        0xE1: (ValueType.INT, lambda b: (-31, b)),
+        0xE2: (ValueType.INT, lambda b: (-30, b)),
+        0xE3: (ValueType.INT, lambda b: (-29, b)),
+        0xE4: (ValueType.INT, lambda b: (-28, b)),
+        0xE5: (ValueType.INT, lambda b: (-27, b)),
+        0xE6: (ValueType.INT, lambda b: (-26, b)),
+        0xE7: (ValueType.INT, lambda b: (-25, b)),
+        0xE8: (ValueType.INT, lambda b: (-24, b)),
+        0xE9: (ValueType.INT, lambda b: (-23, b)),
+        0xEA: (ValueType.INT, lambda b: (-22, b)),
+        0xEB: (ValueType.INT, lambda b: (-21, b)),
+        0xEC: (ValueType.INT, lambda b: (-20, b)),
+        0xED: (ValueType.INT, lambda b: (-19, b)),
+        0xEE: (ValueType.INT, lambda b: (-18, b)),
+        0xEF: (ValueType.INT, lambda b: (-17, b)),
+        0xF0: (ValueType.INT, lambda b: (-16, b)),
+        0xF1: (ValueType.INT, lambda b: (-15, b)),
+        0xF2: (ValueType.INT, lambda b: (-14, b)),
+        0xF3: (ValueType.INT, lambda b: (-13, b)),
+        0xF4: (ValueType.INT, lambda b: (-12, b)),
+        0xF5: (ValueType.INT, lambda b: (-11, b)),
+        0xF6: (ValueType.INT, lambda b: (-10, b)),
+        0xF7: (ValueType.INT, lambda b: (-9, b)),
+        0xF8: (ValueType.INT, lambda b: (-8, b)),
+        0xF9: (ValueType.INT, lambda b: (-7, b)),
+        0xFA: (ValueType.INT, lambda b: (-6, b)),
+        0xFB: (ValueType.INT, lambda b: (-5, b)),
+        0xFC: (ValueType.INT, lambda b: (-4, b)),
+        0xFD: (ValueType.INT, lambda b: (-3, b)),
+        0xFE: (ValueType.INT, lambda b: (-2, b)),
+        0xFF: (ValueType.INT, lambda b: (-1, b)),
         }
 
 
@@ -370,7 +383,11 @@ class Parser:
         return x
 
     def is_nil(self):
-        return self.bytedata[0]==MsgPackFormat.NIL.value
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        if t==ValueType.NIL:
+            return True
+        return False
 
     def is_array(self):
         head=self.bytedata[0]
@@ -379,12 +396,30 @@ class Parser:
 
     def get_bool(self):
         head=self.bytedata[0]
-        if head==MsgPackFormat.FALSE.value:
-            return False
-        elif head==MsgPackFormat.TRUE.value:
-            return True
+        t, value=HEAD_MAP[head]
+        if t==ValueType.BOOL:
+            x, _=value(self.bytedata[1:])
+            return x
 
-        raise ValueError('is not bool. 0x%02x' % head)
+        raise ValueError('is not bool. %s' % t)
+
+    def get_int(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        if t==ValueType.INT:
+            x, _=value(self.bytedata[1:])
+            return x
+
+        raise ValueError('is not int. %s' % t)
+
+    def get_float(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        if t==ValueType.FLOAT:
+            x, _=value(self.bytedata[1:])
+            return x
+
+        raise ValueError('is not float. %s' % t)
 
     def get_number(self):
         head=self.bytedata[0]
