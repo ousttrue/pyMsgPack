@@ -264,8 +264,8 @@ HEAD_MAP={
         0xC5: (ValueType.BIN, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
         0xC6: (ValueType.BIN, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
 
-        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b[:4])[0], 1)),
-        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b[:8])[0], 1)),
+        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b[:4])[0], 4)),
+        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b[:8])[0], 8)),
         MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: (struct.unpack('>B', b[:1])[0], 1)),
         MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: (struct.unpack('>H', b[:2])[0], 2)),
         MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: (struct.unpack('>I', b[:4])[0], 4)),
