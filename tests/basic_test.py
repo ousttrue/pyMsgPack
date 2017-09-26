@@ -167,6 +167,23 @@ class TestPyMsgPack(unittest.TestCase):
         self.assertEqual(2, parsed[1].get_number())
         self.assertEqual(3, parsed[2].get_number())
 
+    def test_map(self):
+        src={
+            'a': 1,
+            'b': 2,
+            'c': 3,
+        }
+        # pack
+        packed=pymsgpack.pack(src)
+        self.assertEqual(b'\x83\xa1\x61\x01\xa1\x62\x02\xa1\x63\x03', packed)
+        # parse
+        parsed=pymsgpack.Parser(packed)
+        self.assertTrue(parsed.is_map())
+        self.assertEqual(3, len(parsed))
+        self.assertEqual(1, parsed['a'].get_number())
+        self.assertEqual(2, parsed['b'].get_number())
+        self.assertEqual(3, parsed['c'].get_number())
+
 
 if __name__ == '__main__':
     unittest.main()

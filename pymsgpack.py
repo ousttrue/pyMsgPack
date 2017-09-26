@@ -172,7 +172,10 @@ HEAD_MAP={
         0x7E: (ValueType.INT, lambda b: (126, b)),
         0x7F: (ValueType.INT, lambda b: (127, b)),
 
-        #0x80:
+        0x80: (ValueType.MAP, lambda b: (0, b)),
+        0x81: (ValueType.MAP, lambda b: (1, b)),
+        0x82: (ValueType.MAP, lambda b: (2, b)),
+        0x83: (ValueType.MAP, lambda b: (3, b)),
 
         0x90: (ValueType.ARRAY, lambda b: (0, b)),
         0x91: (ValueType.ARRAY, lambda b: (1, b)),
@@ -286,6 +289,13 @@ class Packer:
 
         raise NotImplementedError()
 
+    def map(self, count):
+        if count<=0xF:
+            self.payload.append(MsgPackFormat.FIXMAP.value + count)
+            return
+
+        raise NotImplementedError()
+
     def pack(self, value):
         self.payload.extend(pack(value))
 
@@ -357,6 +367,14 @@ def pack(obj):
         else:
             raise OverflowError('pack failed. %s' % obj)
 
+    elif isinstance(obj, dict):
+        packer=Packer()
+        packer.map(len(obj))
+        for k, v in obj.items():
+            packer.pack(k)
+            packer.pack(v)
+        return packer.payload
+
     elif hasattr(obj, '__iter__'):
         packer=Packer()
         packer.array(len(obj))
@@ -364,19 +382,19 @@ def pack(obj):
             packer.pack(x)
         return packer.payload
 
-    raise NotImplementedError('pack failed. %s' % obj)
+    raise ValueError('unknown type. %s' % type(obj))
 
 
 class Parser:
     def __init__(self, bytedata):
         self.bytedata=bytedata
 
-    def value_type(self):
+    def get_type(self):
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
         return t
 
-    def value(self):
+    def get(self):
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
         x, remain=value(self.bytedata[1:])
@@ -393,6 +411,11 @@ class Parser:
         head=self.bytedata[0]
         t, get_body=HEAD_MAP[head]
         return t==ValueType.ARRAY
+
+    def is_map(self):
+        head=self.bytedata[0]
+        t, get_body=HEAD_MAP[head]
+        return t==ValueType.MAP
 
     def get_bool(self):
         head=self.bytedata[0]
@@ -451,16 +474,21 @@ class Parser:
     def __len__(self):
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
-        if t==ValueType.ARRAY:
+        if t==ValueType.ARRAY or t==ValueType.MAP:
             count, body=value(self.bytedata[1:])
             return count
 
-        raise ValueError('is not array. %s' % t)
+        raise ValueError('is not array or map. %s' % t)
 
     def __getitem__(self, index):
-        for i, x in enumerate(self):
-            if i==index:
-                return x
+        if isinstance(index, int):
+            for i, x in enumerate(self):
+                if i==index:
+                    return x
+        else:
+            for k, v in self.items():
+                if k.get_str()==index:
+                    return v
 
     def __iter__(self):
         head=self.bytedata[0]
@@ -473,8 +501,8 @@ class Parser:
                 yield current
                 current=current.next()
                 x+=1
-
-        raise ValueError('is not array. %s' % t)
+        else:
+            raise ValueError('is not array. %s' % t)
 
     def next(self):
         head=self.bytedata[0]
@@ -486,4 +514,25 @@ class Parser:
         else:
             _, remain=value(self.bytedata[1:])
             return Parser(remain)
+
+    def items(self):
+        return MapIter(self)
+
+class MapIter:
+    def __init__(self, parser):
+        if not parser.is_map():
+            raise TypeError('is not map')
+        self.bytedata=parser.bytedata
+
+    def __iter__(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        count, body=value(self.bytedata[1:])
+        x=0
+        current=Parser(body)
+        while x<count:
+            v=current.next()
+            yield current, v
+            current=v.next()
+            x+=1
 
