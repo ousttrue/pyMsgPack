@@ -155,17 +155,31 @@ class TestPyMsgPack(unittest.TestCase):
         _test_bin(os.urandom(65536), '>BI%ds', 0xc6)
 
     def test_array(self):
-        src=[1, 2, 3]
-        # pack
-        packed=pymsgpack.pack(src)
-        self.assertEqual(b'\x93\x01\x02\x03', packed)
-        # parse
-        parsed=pymsgpack.Parser(packed)
-        self.assertTrue(parsed.is_array())
-        self.assertEqual(3, len(parsed))
-        self.assertEqual(1, parsed[0].get_number())
-        self.assertEqual(2, parsed[1].get_number())
-        self.assertEqual(3, parsed[2].get_number())
+
+        def _test_array(src, dst):
+            # pack
+            packed=pymsgpack.pack(src)
+            self.assertEqual(dst, bytes(packed))
+            # parse
+            parsed=pymsgpack.Parser(packed)
+            self.assertTrue(parsed.is_array())
+            self.assertEqual(src, parsed.get())
+
+        # fixarray
+        _test_array([1, 2, 3]
+                , b'\x93\x01\x02\x03')
+        _test_array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+                , b'\x9F\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0A\x0B\x0C\x0D\x0E\x0F')
+
+        # array16
+        n=0xF+1
+        _test_array([1 for x in range(n)]
+                , b''.join([b'\xdc', struct.pack('>H', n), b'\x01'*n]))
+
+        # array32
+        n=0xFFFF+1
+        _test_array([1 for x in range(n)]
+                , b''.join([b'\xdd', struct.pack('>I', n), b'\x01'*n]))
 
     def test_map(self):
         src={
