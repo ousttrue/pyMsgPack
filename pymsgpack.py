@@ -38,222 +38,243 @@ class MsgPackFormat(Enum):
     STR16=0xDA
     STR32=0xDB
 
+def split_index(b, offset, count):
+    end=offset+count
+    return b[offset:end], b[end:]
 
-NUMBER_MAP={
-        0x00: (ValueType.INT, lambda _: 0),
-        0x01: (ValueType.INT, lambda _: 1),
-        0x02: (ValueType.INT, lambda _: 2),
-        0x03: (ValueType.INT, lambda _: 3),
-        0x04: (ValueType.INT, lambda _: 4),
-        0x05: (ValueType.INT, lambda _: 5),
-        0x06: (ValueType.INT, lambda _: 6),
-        0x07: (ValueType.INT, lambda _: 7),
-        0x08: (ValueType.INT, lambda _: 8),
-        0x09: (ValueType.INT, lambda _: 9),
-        0x0A: (ValueType.INT, lambda _: 10),
-        0x0B: (ValueType.INT, lambda _: 11),
-        0x0C: (ValueType.INT, lambda _: 12),
-        0x0D: (ValueType.INT, lambda _: 13),
-        0x0E: (ValueType.INT, lambda _: 14),
-        0x0F: (ValueType.INT, lambda _: 15),
-        0x10: (ValueType.INT, lambda _: 16),
-        0x11: (ValueType.INT, lambda _: 17),
-        0x12: (ValueType.INT, lambda _: 18),
-        0x13: (ValueType.INT, lambda _: 19),
-        0x14: (ValueType.INT, lambda _: 20),
-        0x15: (ValueType.INT, lambda _: 21),
-        0x16: (ValueType.INT, lambda _: 22),
-        0x17: (ValueType.INT, lambda _: 23),
-        0x18: (ValueType.INT, lambda _: 24),
-        0x19: (ValueType.INT, lambda _: 25),
-        0x1A: (ValueType.INT, lambda _: 26),
-        0x1B: (ValueType.INT, lambda _: 27),
-        0x1C: (ValueType.INT, lambda _: 28),
-        0x1D: (ValueType.INT, lambda _: 29),
-        0x1E: (ValueType.INT, lambda _: 30),
-        0x1F: (ValueType.INT, lambda _: 31),
-        0x20: (ValueType.INT, lambda _: 32),
-        0x21: (ValueType.INT, lambda _: 33),
-        0x22: (ValueType.INT, lambda _: 34),
-        0x23: (ValueType.INT, lambda _: 35),
-        0x24: (ValueType.INT, lambda _: 36),
-        0x25: (ValueType.INT, lambda _: 37),
-        0x26: (ValueType.INT, lambda _: 38),
-        0x27: (ValueType.INT, lambda _: 39),
-        0x28: (ValueType.INT, lambda _: 40),
-        0x29: (ValueType.INT, lambda _: 41),
-        0x2A: (ValueType.INT, lambda _: 42),
-        0x2B: (ValueType.INT, lambda _: 43),
-        0x2C: (ValueType.INT, lambda _: 44),
-        0x2D: (ValueType.INT, lambda _: 45),
-        0x2E: (ValueType.INT, lambda _: 46),
-        0x2F: (ValueType.INT, lambda _: 47),
-        0x30: (ValueType.INT, lambda _: 48),
-        0x31: (ValueType.INT, lambda _: 49),
-        0x32: (ValueType.INT, lambda _: 50),
-        0x33: (ValueType.INT, lambda _: 51),
-        0x34: (ValueType.INT, lambda _: 52),
-        0x35: (ValueType.INT, lambda _: 53),
-        0x36: (ValueType.INT, lambda _: 54),
-        0x37: (ValueType.INT, lambda _: 55),
-        0x38: (ValueType.INT, lambda _: 56),
-        0x39: (ValueType.INT, lambda _: 57),
-        0x3A: (ValueType.INT, lambda _: 58),
-        0x3B: (ValueType.INT, lambda _: 59),
-        0x3C: (ValueType.INT, lambda _: 60),
-        0x3D: (ValueType.INT, lambda _: 61),
-        0x3E: (ValueType.INT, lambda _: 62),
-        0x3F: (ValueType.INT, lambda _: 63),
-        0x40: (ValueType.INT, lambda _: 64),
-        0x41: (ValueType.INT, lambda _: 65),
-        0x42: (ValueType.INT, lambda _: 66),
-        0x43: (ValueType.INT, lambda _: 67),
-        0x44: (ValueType.INT, lambda _: 68),
-        0x45: (ValueType.INT, lambda _: 69),
-        0x46: (ValueType.INT, lambda _: 70),
-        0x47: (ValueType.INT, lambda _: 71),
-        0x48: (ValueType.INT, lambda _: 72),
-        0x49: (ValueType.INT, lambda _: 73),
-        0x4A: (ValueType.INT, lambda _: 74),
-        0x4B: (ValueType.INT, lambda _: 75),
-        0x4C: (ValueType.INT, lambda _: 76),
-        0x4D: (ValueType.INT, lambda _: 77),
-        0x4E: (ValueType.INT, lambda _: 78),
-        0x4F: (ValueType.INT, lambda _: 79),
-        0x50: (ValueType.INT, lambda _: 80),
-        0x51: (ValueType.INT, lambda _: 81),
-        0x52: (ValueType.INT, lambda _: 82),
-        0x53: (ValueType.INT, lambda _: 83),
-        0x54: (ValueType.INT, lambda _: 84),
-        0x55: (ValueType.INT, lambda _: 85),
-        0x56: (ValueType.INT, lambda _: 86),
-        0x57: (ValueType.INT, lambda _: 87),
-        0x58: (ValueType.INT, lambda _: 88),
-        0x59: (ValueType.INT, lambda _: 89),
-        0x5A: (ValueType.INT, lambda _: 90),
-        0x5B: (ValueType.INT, lambda _: 91),
-        0x5C: (ValueType.INT, lambda _: 92),
-        0x5D: (ValueType.INT, lambda _: 93),
-        0x5E: (ValueType.INT, lambda _: 94),
-        0x5F: (ValueType.INT, lambda _: 95),
-        0x60: (ValueType.INT, lambda _: 96),
-        0x61: (ValueType.INT, lambda _: 97),
-        0x62: (ValueType.INT, lambda _: 98),
-        0x63: (ValueType.INT, lambda _: 99),
-        0x64: (ValueType.INT, lambda _: 100),
-        0x65: (ValueType.INT, lambda _: 101),
-        0x66: (ValueType.INT, lambda _: 102),
-        0x67: (ValueType.INT, lambda _: 103),
-        0x68: (ValueType.INT, lambda _: 104),
-        0x69: (ValueType.INT, lambda _: 105),
-        0x6A: (ValueType.INT, lambda _: 106),
-        0x6B: (ValueType.INT, lambda _: 107),
-        0x6C: (ValueType.INT, lambda _: 108),
-        0x6D: (ValueType.INT, lambda _: 109),
-        0x6E: (ValueType.INT, lambda _: 110),
-        0x6F: (ValueType.INT, lambda _: 111),
-        0x70: (ValueType.INT, lambda _: 112),
-        0x71: (ValueType.INT, lambda _: 113),
-        0x72: (ValueType.INT, lambda _: 114),
-        0x73: (ValueType.INT, lambda _: 115),
-        0x74: (ValueType.INT, lambda _: 116),
-        0x75: (ValueType.INT, lambda _: 117),
-        0x76: (ValueType.INT, lambda _: 118),
-        0x77: (ValueType.INT, lambda _: 119),
-        0x78: (ValueType.INT, lambda _: 120),
-        0x79: (ValueType.INT, lambda _: 121),
-        0x7A: (ValueType.INT, lambda _: 122),
-        0x7B: (ValueType.INT, lambda _: 123),
-        0x7C: (ValueType.INT, lambda _: 124),
-        0x7D: (ValueType.INT, lambda _: 125),
-        0x7E: (ValueType.INT, lambda _: 126),
-        0x7F: (ValueType.INT, lambda _: 127),
+HEAD_MAP={
+        0x00: (ValueType.INT, lambda b: (0, b)),
+        0x01: (ValueType.INT, lambda b: (1, b)),
+        0x02: (ValueType.INT, lambda b: (2, b)),
+        0x03: (ValueType.INT, lambda b: (3, b)),
+        0x04: (ValueType.INT, lambda b: (4, b)),
+        0x05: (ValueType.INT, lambda b: (5, b)),
+        0x06: (ValueType.INT, lambda b: (6, b)),
+        0x07: (ValueType.INT, lambda b: (7, b)),
+        0x08: (ValueType.INT, lambda b: (8, b)),
+        0x09: (ValueType.INT, lambda b: (9, b)),
+        0x0A: (ValueType.INT, lambda b: (10, b)),
+        0x0b: (ValueType.INT, lambda b: (11, b)),
+        0x0C: (ValueType.INT, lambda b: (12, b)),
+        0x0D: (ValueType.INT, lambda b: (13, b)),
+        0x0E: (ValueType.INT, lambda b: (14, b)),
+        0x0F: (ValueType.INT, lambda b: (15, b)),
+        0x10: (ValueType.INT, lambda b: (16, b)),
+        0x11: (ValueType.INT, lambda b: (17, b)),
+        0x12: (ValueType.INT, lambda b: (18, b)),
+        0x13: (ValueType.INT, lambda b: (19, b)),
+        0x14: (ValueType.INT, lambda b: (20, b)),
+        0x15: (ValueType.INT, lambda b: (21, b)),
+        0x16: (ValueType.INT, lambda b: (22, b)),
+        0x17: (ValueType.INT, lambda b: (23, b)),
+        0x18: (ValueType.INT, lambda b: (24, b)),
+        0x19: (ValueType.INT, lambda b: (25, b)),
+        0x1A: (ValueType.INT, lambda b: (26, b)),
+        0x1B: (ValueType.INT, lambda b: (27, b)),
+        0x1C: (ValueType.INT, lambda b: (28, b)),
+        0x1D: (ValueType.INT, lambda b: (29, b)),
+        0x1E: (ValueType.INT, lambda b: (30, b)),
+        0x1F: (ValueType.INT, lambda b: (31, b)),
+        0x20: (ValueType.INT, lambda b: (32, b)),
+        0x21: (ValueType.INT, lambda b: (33, b)),
+        0x22: (ValueType.INT, lambda b: (34, b)),
+        0x23: (ValueType.INT, lambda b: (35, b)),
+        0x24: (ValueType.INT, lambda b: (36, b)),
+        0x25: (ValueType.INT, lambda b: (37, b)),
+        0x26: (ValueType.INT, lambda b: (38, b)),
+        0x27: (ValueType.INT, lambda b: (39, b)),
+        0x28: (ValueType.INT, lambda b: (40, b)),
+        0x29: (ValueType.INT, lambda b: (41, b)),
+        0x2A: (ValueType.INT, lambda b: (42, b)),
+        0x2B: (ValueType.INT, lambda b: (43, b)),
+        0x2C: (ValueType.INT, lambda b: (44, b)),
+        0x2D: (ValueType.INT, lambda b: (45, b)),
+        0x2E: (ValueType.INT, lambda b: (46, b)),
+        0x2F: (ValueType.INT, lambda b: (47, b)),
+        0x30: (ValueType.INT, lambda b: (48, b)),
+        0x31: (ValueType.INT, lambda b: (49, b)),
+        0x32: (ValueType.INT, lambda b: (50, b)),
+        0x33: (ValueType.INT, lambda b: (51, b)),
+        0x34: (ValueType.INT, lambda b: (52, b)),
+        0x35: (ValueType.INT, lambda b: (53, b)),
+        0x36: (ValueType.INT, lambda b: (54, b)),
+        0x37: (ValueType.INT, lambda b: (55, b)),
+        0x38: (ValueType.INT, lambda b: (56, b)),
+        0x39: (ValueType.INT, lambda b: (57, b)),
+        0x3A: (ValueType.INT, lambda b: (58, b)),
+        0x3B: (ValueType.INT, lambda b: (59, b)),
+        0x3C: (ValueType.INT, lambda b: (60, b)),
+        0x3D: (ValueType.INT, lambda b: (61, b)),
+        0x3E: (ValueType.INT, lambda b: (62, b)),
+        0x3F: (ValueType.INT, lambda b: (63, b)),
+        0x40: (ValueType.INT, lambda b: (64, b)),
+        0x41: (ValueType.INT, lambda b: (65, b)),
+        0x42: (ValueType.INT, lambda b: (66, b)),
+        0x43: (ValueType.INT, lambda b: (67, b)),
+        0x44: (ValueType.INT, lambda b: (68, b)),
+        0x45: (ValueType.INT, lambda b: (69, b)),
+        0x46: (ValueType.INT, lambda b: (70, b)),
+        0x47: (ValueType.INT, lambda b: (71, b)),
+        0x48: (ValueType.INT, lambda b: (72, b)),
+        0x49: (ValueType.INT, lambda b: (73, b)),
+        0x4A: (ValueType.INT, lambda b: (74, b)),
+        0x4B: (ValueType.INT, lambda b: (75, b)),
+        0x4C: (ValueType.INT, lambda b: (76, b)),
+        0x4D: (ValueType.INT, lambda b: (77, b)),
+        0x4E: (ValueType.INT, lambda b: (78, b)),
+        0x4F: (ValueType.INT, lambda b: (79, b)),
+        0x50: (ValueType.INT, lambda b: (80, b)),
+        0x51: (ValueType.INT, lambda b: (81, b)),
+        0x52: (ValueType.INT, lambda b: (82, b)),
+        0x53: (ValueType.INT, lambda b: (83, b)),
+        0x54: (ValueType.INT, lambda b: (84, b)),
+        0x55: (ValueType.INT, lambda b: (85, b)),
+        0x56: (ValueType.INT, lambda b: (86, b)),
+        0x57: (ValueType.INT, lambda b: (87, b)),
+        0x58: (ValueType.INT, lambda b: (88, b)),
+        0x59: (ValueType.INT, lambda b: (89, b)),
+        0x5A: (ValueType.INT, lambda b: (90, b)),
+        0x5b: (ValueType.INT, lambda b: (91, b)),
+        0x5C: (ValueType.INT, lambda b: (92, b)),
+        0x5D: (ValueType.INT, lambda b: (93, b)),
+        0x5E: (ValueType.INT, lambda b: (94, b)),
+        0x5F: (ValueType.INT, lambda b: (95, b)),
+        0x60: (ValueType.INT, lambda b: (96, b)),
+        0x61: (ValueType.INT, lambda b: (97, b)),
+        0x62: (ValueType.INT, lambda b: (98, b)),
+        0x63: (ValueType.INT, lambda b: (99, b)),
+        0x64: (ValueType.INT, lambda b: (100, b)),
+        0x65: (ValueType.INT, lambda b: (101, b)),
+        0x66: (ValueType.INT, lambda b: (102, b)),
+        0x67: (ValueType.INT, lambda b: (103, b)),
+        0x68: (ValueType.INT, lambda b: (104, b)),
+        0x69: (ValueType.INT, lambda b: (105, b)),
+        0x6A: (ValueType.INT, lambda b: (106, b)),
+        0x6B: (ValueType.INT, lambda b: (107, b)),
+        0x6C: (ValueType.INT, lambda b: (108, b)),
+        0x6D: (ValueType.INT, lambda b: (109, b)),
+        0x6E: (ValueType.INT, lambda b: (110, b)),
+        0x6F: (ValueType.INT, lambda b: (111, b)),
+        0x70: (ValueType.INT, lambda b: (112, b)),
+        0x71: (ValueType.INT, lambda b: (113, b)),
+        0x72: (ValueType.INT, lambda b: (114, b)),
+        0x73: (ValueType.INT, lambda b: (115, b)),
+        0x74: (ValueType.INT, lambda b: (116, b)),
+        0x75: (ValueType.INT, lambda b: (117, b)),
+        0x76: (ValueType.INT, lambda b: (118, b)),
+        0x77: (ValueType.INT, lambda b: (119, b)),
+        0x78: (ValueType.INT, lambda b: (120, b)),
+        0x79: (ValueType.INT, lambda b: (121, b)),
+        0x7A: (ValueType.INT, lambda b: (122, b)),
+        0x7B: (ValueType.INT, lambda b: (123, b)),
+        0x7C: (ValueType.INT, lambda b: (124, b)),
+        0x7D: (ValueType.INT, lambda b: (125, b)),
+        0x7E: (ValueType.INT, lambda b: (126, b)),
+        0x7F: (ValueType.INT, lambda b: (127, b)),
 
-        0xE0: (ValueType.INT, lambda _: -32),
-        0xE1: (ValueType.INT, lambda _: -31),
-        0xE2: (ValueType.INT, lambda _: -30),
-        0xE3: (ValueType.INT, lambda _: -29),
-        0xE4: (ValueType.INT, lambda _: -28),
-        0xE5: (ValueType.INT, lambda _: -27),
-        0xE6: (ValueType.INT, lambda _: -26),
-        0xE7: (ValueType.INT, lambda _: -25),
-        0xE8: (ValueType.INT, lambda _: -24),
-        0xE9: (ValueType.INT, lambda _: -23),
-        0xEA: (ValueType.INT, lambda _: -22),
-        0xEB: (ValueType.INT, lambda _: -21),
-        0xEC: (ValueType.INT, lambda _: -20),
-        0xED: (ValueType.INT, lambda _: -19),
-        0xEE: (ValueType.INT, lambda _: -18),
-        0xEF: (ValueType.INT, lambda _: -17),
-        0xF0: (ValueType.INT, lambda _: -16),
-        0xF1: (ValueType.INT, lambda _: -15),
-        0xF2: (ValueType.INT, lambda _: -14),
-        0xF3: (ValueType.INT, lambda _: -13),
-        0xF4: (ValueType.INT, lambda _: -12),
-        0xF5: (ValueType.INT, lambda _: -11),
-        0xF6: (ValueType.INT, lambda _: -10),
-        0xF7: (ValueType.INT, lambda _: -9),
-        0xF8: (ValueType.INT, lambda _: -8),
-        0xF9: (ValueType.INT, lambda _: -7),
-        0xFA: (ValueType.INT, lambda _: -6),
-        0xFB: (ValueType.INT, lambda _: -5),
-        0xFC: (ValueType.INT, lambda _: -4),
-        0xFD: (ValueType.INT, lambda _: -3),
-        0xFE: (ValueType.INT, lambda _: -2),
-        0xFF: (ValueType.INT, lambda _: -1),
+        0xE0: (ValueType.INT, lambda b: (-32, b)),
+        0xE1: (ValueType.INT, lambda b: (-31, b)),
+        0xE2: (ValueType.INT, lambda b: (-30, b)),
+        0xE3: (ValueType.INT, lambda b: (-29, b)),
+        0xE4: (ValueType.INT, lambda b: (-28, b)),
+        0xE5: (ValueType.INT, lambda b: (-27, b)),
+        0xE6: (ValueType.INT, lambda b: (-26, b)),
+        0xE7: (ValueType.INT, lambda b: (-25, b)),
+        0xE8: (ValueType.INT, lambda b: (-24, b)),
+        0xE9: (ValueType.INT, lambda b: (-23, b)),
+        0xEA: (ValueType.INT, lambda b: (-22, b)),
+        0xEB: (ValueType.INT, lambda b: (-21, b)),
+        0xEC: (ValueType.INT, lambda b: (-20, b)),
+        0xED: (ValueType.INT, lambda b: (-19, b)),
+        0xEE: (ValueType.INT, lambda b: (-18, b)),
+        0xEF: (ValueType.INT, lambda b: (-17, b)),
+        0xF0: (ValueType.INT, lambda b: (-16, b)),
+        0xF1: (ValueType.INT, lambda b: (-15, b)),
+        0xF2: (ValueType.INT, lambda b: (-14, b)),
+        0xF3: (ValueType.INT, lambda b: (-13, b)),
+        0xF4: (ValueType.INT, lambda b: (-12, b)),
+        0xF5: (ValueType.INT, lambda b: (-11, b)),
+        0xF6: (ValueType.INT, lambda b: (-10, b)),
+        0xF7: (ValueType.INT, lambda b: (-9, b)),
+        0xF8: (ValueType.INT, lambda b: (-8, b)),
+        0xF9: (ValueType.INT, lambda b: (-7, b)),
+        0xFA: (ValueType.INT, lambda b: (-6, b)),
+        0xFB: (ValueType.INT, lambda b: (-5, b)),
+        0xFC: (ValueType.INT, lambda b: (-4, b)),
+        0xFD: (ValueType.INT, lambda b: (-3, b)),
+        0xFE: (ValueType.INT, lambda b: (-2, b)),
+        0xFF: (ValueType.INT, lambda b: (-1, b)),
 
-        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: struct.unpack('>f', b)[0]),
-        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: struct.unpack('>d', b)[0]),
-        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: struct.unpack('>B', b)[0]),
-        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: struct.unpack('>H', b)[0]),
-        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: struct.unpack('>I', b)[0]),
-        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: struct.unpack('>Q', b)[0]),
-        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: struct.unpack('>b', b)[0]),
-        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: struct.unpack('>h', b)[0]),
-        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: struct.unpack('>i', b)[0]),
-        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: struct.unpack('>q', b)[0]),
-}
+        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b)[0], b[1:])),
+        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b)[0], b[1:])),
+        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: (struct.unpack('>B', b)[0], b[1:])),
+        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: (struct.unpack('>H', b)[0], b[1:])),
+        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: (struct.unpack('>I', b)[0], b[1:])),
+        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: (struct.unpack('>Q', b)[0], b[1:])),
+        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: (struct.unpack('>b', b)[0], b[1:])),
+        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: (struct.unpack('>h', b)[0], b[1:])),
+        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: (struct.unpack('>i', b)[0], b[1:])),
+        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: (struct.unpack('>q', b)[0], b[1:])),
 
-BODY_MAP={
-        0xA0: (ValueType.STR, lambda b: b''),
-        0xA1: (ValueType.STR, lambda b: b[:1]),
-        0xA2: (ValueType.STR, lambda b: b[:2]),
-        0xA3: (ValueType.STR, lambda b: b[:3]),
-        0xA4: (ValueType.STR, lambda b: b[:4]),
-        0xA5: (ValueType.STR, lambda b: b[:5]),
-        0xA6: (ValueType.STR, lambda b: b[:6]),
-        0xA7: (ValueType.STR, lambda b: b[:7]),
-        0xA8: (ValueType.STR, lambda b: b[:8]),
-        0xA9: (ValueType.STR, lambda b: b[:9]),
-        0xAA: (ValueType.STR, lambda b: b[:10]),
-        0xAB: (ValueType.STR, lambda b: b[:11]),
-        0xAC: (ValueType.STR, lambda b: b[:12]),
-        0xAD: (ValueType.STR, lambda b: b[:13]),
-        0xAE: (ValueType.STR, lambda b: b[:14]),
-        0xAF: (ValueType.STR, lambda b: b[:15]),
-        0xB0: (ValueType.STR, lambda b: b[:16]),
-        0xB1: (ValueType.STR, lambda b: b[:17]),
-        0xB2: (ValueType.STR, lambda b: b[:18]),
-        0xB3: (ValueType.STR, lambda b: b[:19]),
-        0xB4: (ValueType.STR, lambda b: b[:20]),
-        0xB5: (ValueType.STR, lambda b: b[:21]),
-        0xB6: (ValueType.STR, lambda b: b[:22]),
-        0xB7: (ValueType.STR, lambda b: b[:23]),
-        0xB8: (ValueType.STR, lambda b: b[:24]),
-        0xB9: (ValueType.STR, lambda b: b[:25]),
-        0xBA: (ValueType.STR, lambda b: b[:26]),
-        0xBB: (ValueType.STR, lambda b: b[:27]),
-        0xBC: (ValueType.STR, lambda b: b[:28]),
-        0xBD: (ValueType.STR, lambda b: b[:29]),
-        0xBE: (ValueType.STR, lambda b: b[:30]),
-        0xBF: (ValueType.STR, lambda b: b[:31]),
-        0xD9: (ValueType.STR, lambda b: b[1:1+struct.unpack('B', b[:1])[0]]),
-        0xDA: (ValueType.STR, lambda b: b[2:2+struct.unpack('>H', b[:2])[0]]),
-        0xDB: (ValueType.STR, lambda b: b[4:4+struct.unpack('>I', b[:4])[0]]),
-        0xC4: (ValueType.BIN, lambda b: b[1:1+struct.unpack('B', b[:1])[0]]),
-        0xC5: (ValueType.BIN, lambda b: b[2:2+struct.unpack('>H', b[:2])[0]]),
-        0xC6: (ValueType.BIN, lambda b: b[4:4+struct.unpack('>I', b[:4])[0]]),
+        0xA0: (ValueType.STR, lambda b: split_index(b, 0, 0)),
+        0xA1: (ValueType.STR, lambda b: split_index(b, 0, 1)),
+        0xA2: (ValueType.STR, lambda b: split_index(b, 0, 2)),
+        0xA3: (ValueType.STR, lambda b: split_index(b, 0, 3)),
+        0xA4: (ValueType.STR, lambda b: split_index(b, 0, 4)),
+        0xA5: (ValueType.STR, lambda b: split_index(b, 0, 5)),
+        0xA6: (ValueType.STR, lambda b: split_index(b, 0, 6)),
+        0xA7: (ValueType.STR, lambda b: split_index(b, 0, 7)),
+        0xA8: (ValueType.STR, lambda b: split_index(b, 0, 8)),
+        0xA9: (ValueType.STR, lambda b: split_index(b, 0, 9)),
+        0xAA: (ValueType.STR, lambda b: split_index(b, 0, 10)),
+        0xAB: (ValueType.STR, lambda b: split_index(b, 0, 11)),
+        0xAC: (ValueType.STR, lambda b: split_index(b, 0, 12)),
+        0xAD: (ValueType.STR, lambda b: split_index(b, 0, 13)),
+        0xAE: (ValueType.STR, lambda b: split_index(b, 0, 14)),
+        0xAF: (ValueType.STR, lambda b: split_index(b, 0, 15)),
+        0xB0: (ValueType.STR, lambda b: split_index(b, 0, 16)),
+        0xB1: (ValueType.STR, lambda b: split_index(b, 0, 17)),
+        0xB2: (ValueType.STR, lambda b: split_index(b, 0, 18)),
+        0xB3: (ValueType.STR, lambda b: split_index(b, 0, 19)),
+        0xB4: (ValueType.STR, lambda b: split_index(b, 0, 20)),
+        0xB5: (ValueType.STR, lambda b: split_index(b, 0, 21)),
+        0xB6: (ValueType.STR, lambda b: split_index(b, 0, 22)),
+        0xB7: (ValueType.STR, lambda b: split_index(b, 0, 23)),
+        0xB8: (ValueType.STR, lambda b: split_index(b, 0, 24)),
+        0xB9: (ValueType.STR, lambda b: split_index(b, 0, 25)),
+        0xBA: (ValueType.STR, lambda b: split_index(b, 0, 26)),
+        0xBB: (ValueType.STR, lambda b: split_index(b, 0, 27)),
+        0xBC: (ValueType.STR, lambda b: split_index(b, 0, 28)),
+        0xBD: (ValueType.STR, lambda b: split_index(b, 0, 29)),
+        0xBE: (ValueType.STR, lambda b: split_index(b, 0, 30)),
+        0xBF: (ValueType.STR, lambda b: split_index(b, 0, 31)),
+        0xD9: (ValueType.STR, lambda b: split_index(b, 1, struct.unpack('B', b[:1])[0])),
+        0xDA: (ValueType.STR, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
+        0xDB: (ValueType.STR, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
+        0xC4: (ValueType.BIN, lambda b: split_index(b, 1, struct.unpack('B', b[:1])[0])),
+        0xC5: (ValueType.BIN, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
+        0xC6: (ValueType.BIN, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
+
+        0x90: (ValueType.ARRAY, lambda b: (0, b)),
+        0x91: (ValueType.ARRAY, lambda b: (1, b)),
+        0x92: (ValueType.ARRAY, lambda b: (2, b)),
+        0x93: (ValueType.ARRAY, lambda b: (3, b)),
         }
+
+
+class Packer:
+    def __init__(self):
+        self.payload=bytearray()
+
+    def array(self, count):
+        if count<=0xF:
+            self.payload.append(MsgPackFormat.FIXARRAY.value + count)
+            return
+
+        raise NotImplementedError()
+
+    def pack(self, value):
+        self.payload.extend(pack(value))
 
 
 def pack(obj):
@@ -323,6 +344,13 @@ def pack(obj):
         else:
             raise OverflowError('pack failed. %s' % obj)
 
+    elif hasattr(obj, '__iter__'):
+        packer=Packer()
+        packer.array(len(obj))
+        for x in obj:
+            packer.pack(x)
+        return packer.payload
+
     raise NotImplementedError('pack failed. %s' % obj)
 
 
@@ -330,8 +358,24 @@ class Parser:
     def __init__(self, bytedata):
         self.bytedata=bytedata
 
+    def value_type(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        return t
+
+    def value(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        x, remain=value(self.bytedata[1:])
+        return x
+
     def is_nil(self):
         return self.bytedata[0]==MsgPackFormat.NIL.value
+
+    def is_array(self):
+        head=self.bytedata[0]
+        t, get_body=HEAD_MAP[head]
+        return t==ValueType.ARRAY
 
     def get_bool(self):
         head=self.bytedata[0]
@@ -344,27 +388,63 @@ class Parser:
 
     def get_number(self):
         head=self.bytedata[0]
-        if head in NUMBER_MAP:
-            return NUMBER_MAP[head][1](self.bytedata[1:])
+        t, value=HEAD_MAP[head]
+        if t==ValueType.INT or t==ValueType.FLOAT:
+            x, _=value(self.bytedata[1:])
+            return x
 
-        raise ValueError('is not number. 0x%02x' % head)
+        raise ValueError('is not number. %s' % t)
 
     def get_str(self):
         head=self.bytedata[0]
-        if head in BODY_MAP:
-            t, get_body=BODY_MAP[head]
-            if t==ValueType.STR:
-                return get_body(self.bytedata[1:]).decode('utf-8')
+        t, value=HEAD_MAP[head]
+        if t==ValueType.STR:
+            x, _=value(self.bytedata[1:])
+            return x.decode('utf-8')
 
-        raise ValueError('is not str. 0x%02x' % head)
+        raise ValueError('is not str. %s' % t)
 
     def get_bin(self):
         head=self.bytedata[0]
-        if head in BODY_MAP:
-            t, get_body=BODY_MAP[head]
-            if t==ValueType.BIN:
-                return get_body(self.bytedata[1:])
+        t, value=HEAD_MAP[head]
+        if t==ValueType.BIN:
+            x, _=value(self.bytedata[1:])
+            return x
 
-        raise ValueError('is not bin. 0x%02x' % head)
+        raise ValueError('is not bin. %s' % t)
 
+    def __len__(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        if t==ValueType.ARRAY:
+            count, body=value(self.bytedata[1:])
+            return count
+
+        raise ValueError('is not array. %s' % t)
+
+    def __getitem__(self, index):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        if t==ValueType.ARRAY:
+            count, body=value(self.bytedata[1:])
+
+            x=0
+            current=Parser(body)
+            while x<index:
+                current=current.next()
+                x+=1
+            return current
+
+        raise ValueError('is not array. %s' % t)
+
+    def next(self):
+        head=self.bytedata[0]
+        t, value=HEAD_MAP[head]
+        if t==ValueType.ARRAY:
+            raise NotImplementedError()
+        elif t==ValueType.MAP:
+            raise NotImplementedError()
+        else:
+            _, remain=value(self.bytedata[1:])
+            return Parser(remain)
 

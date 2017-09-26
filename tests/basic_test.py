@@ -154,6 +154,18 @@ class TestPyMsgPack(unittest.TestCase):
         # bin32
         _test_bin(os.urandom(65536), '>BI%ds', 0xc6)
 
+    def test_array(self):
+        src=[1, 2, 3]
+        # pack
+        packed=pymsgpack.pack(src)
+        self.assertEqual(b'\x93\x01\x02\x03', packed)
+        # parse
+        parsed=pymsgpack.Parser(packed)
+        self.assertTrue(parsed.is_array())
+        self.assertEqual(3, len(parsed))
+        self.assertEqual(1, parsed[0].get_number())
+        self.assertEqual(2, parsed[1].get_number())
+        self.assertEqual(3, parsed[2].get_number())
 
 
 if __name__ == '__main__':
