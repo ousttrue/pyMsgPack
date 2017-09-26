@@ -458,17 +458,21 @@ class Parser:
         raise ValueError('is not array. %s' % t)
 
     def __getitem__(self, index):
+        for i, x in enumerate(self):
+            if i==index:
+                return x
+
+    def __iter__(self):
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
         if t==ValueType.ARRAY:
             count, body=value(self.bytedata[1:])
-
             x=0
             current=Parser(body)
-            while x<index:
+            while x<count:
+                yield current
                 current=current.next()
                 x+=1
-            return current
 
         raise ValueError('is not array. %s' % t)
 
