@@ -24,6 +24,9 @@ class MsgPackFormat(Enum):
     BIN8=0xC4
     BIN16=0xC5
     BIN32=0xC6
+    # 0xC7
+    # 0xC8
+    # 0xC9
     FLOAT32=0xCA
     FLOAT64=0xCB
     UINT8=0xCC
@@ -34,13 +37,27 @@ class MsgPackFormat(Enum):
     INT16=0xD1
     INT32=0xD2
     INT64=0xD3
+    # 0xD4
+    # 0xD5
+    # 0xD6
+    # 0xD7
+    # 0xD8
     STR8=0xD9
     STR16=0xDA
     STR32=0xDB
+    ARRAY16=0xDC
+    ARRAY32=0xDD
+    MAP16=0xDE
+    MAP32=0xDF
+    NEGATIVE_FIXINT=0xE0
 
 def split_index(b, offset, count):
     end=offset+count
     return b[offset:end], b[end:]
+
+def split_array(b, fmt, count_len):
+    count=struct.unpack(fmt, b[:count_len])[0]
+    return count, b[count_len:]
 
 HEAD_MAP={
         0x00: (ValueType.INT, lambda b: (0, b)),
@@ -176,11 +193,35 @@ HEAD_MAP={
         0x81: (ValueType.MAP, lambda b: (1, b)),
         0x82: (ValueType.MAP, lambda b: (2, b)),
         0x83: (ValueType.MAP, lambda b: (3, b)),
+        0x84: (ValueType.MAP, lambda b: (4, b)),
+        0x85: (ValueType.MAP, lambda b: (5, b)),
+        0x86: (ValueType.MAP, lambda b: (6, b)),
+        0x87: (ValueType.MAP, lambda b: (7, b)),
+        0x88: (ValueType.MAP, lambda b: (8, b)),
+        0x89: (ValueType.MAP, lambda b: (9, b)),
+        0x8A: (ValueType.MAP, lambda b: (10, b)),
+        0x8B: (ValueType.MAP, lambda b: (11, b)),
+        0x8C: (ValueType.MAP, lambda b: (12, b)),
+        0x8D: (ValueType.MAP, lambda b: (13, b)),
+        0x8E: (ValueType.MAP, lambda b: (14, b)),
+        0x8F: (ValueType.MAP, lambda b: (15, b)),
 
         0x90: (ValueType.ARRAY, lambda b: (0, b)),
         0x91: (ValueType.ARRAY, lambda b: (1, b)),
         0x92: (ValueType.ARRAY, lambda b: (2, b)),
         0x93: (ValueType.ARRAY, lambda b: (3, b)),
+        0x94: (ValueType.ARRAY, lambda b: (4, b)),
+        0x95: (ValueType.ARRAY, lambda b: (5, b)),
+        0x96: (ValueType.ARRAY, lambda b: (6, b)),
+        0x97: (ValueType.ARRAY, lambda b: (7, b)),
+        0x98: (ValueType.ARRAY, lambda b: (8, b)),
+        0x99: (ValueType.ARRAY, lambda b: (9, b)),
+        0x9A: (ValueType.ARRAY, lambda b: (10, b)),
+        0x9B: (ValueType.ARRAY, lambda b: (11, b)),
+        0x9C: (ValueType.ARRAY, lambda b: (12, b)),
+        0x9D: (ValueType.ARRAY, lambda b: (13, b)),
+        0x9E: (ValueType.ARRAY, lambda b: (14, b)),
+        0x9F: (ValueType.ARRAY, lambda b: (15, b)),
 
         0xA0: (ValueType.STR, lambda b: split_index(b, 0, 0)),
         0xA1: (ValueType.STR, lambda b: split_index(b, 0, 1)),
@@ -223,25 +264,26 @@ HEAD_MAP={
         0xC5: (ValueType.BIN, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
         0xC6: (ValueType.BIN, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
 
-        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b)[0], b[1:])),
-        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b)[0], b[1:])),
-        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: (struct.unpack('>B', b)[0], b[1:])),
-        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: (struct.unpack('>H', b)[0], b[1:])),
-        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: (struct.unpack('>I', b)[0], b[1:])),
-        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: (struct.unpack('>Q', b)[0], b[1:])),
-        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: (struct.unpack('>b', b)[0], b[1:])),
-        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: (struct.unpack('>h', b)[0], b[1:])),
-        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: (struct.unpack('>i', b)[0], b[1:])),
-        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: (struct.unpack('>q', b)[0], b[1:])),
+        MsgPackFormat.FLOAT32.value: (ValueType.FLOAT, lambda b: (struct.unpack('>f', b[:4])[0], b[1:])),
+        MsgPackFormat.FLOAT64.value: (ValueType.FLOAT, lambda b: (struct.unpack('>d', b[:8])[0], b[1:])),
+        MsgPackFormat.UINT8.value: (ValueType.INT, lambda b: (struct.unpack('>B', b[:1])[0], b[1:])),
+        MsgPackFormat.UINT16.value: (ValueType.INT, lambda b: (struct.unpack('>H', b[:2])[0], b[2:])),
+        MsgPackFormat.UINT32.value: (ValueType.INT, lambda b: (struct.unpack('>I', b[:4])[0], b[4:])),
+        MsgPackFormat.UINT64.value: (ValueType.INT, lambda b: (struct.unpack('>Q', b[:8])[0], b[8:])),
+        MsgPackFormat.INT8.value: (ValueType.INT, lambda b: (struct.unpack('>b', b[:1])[0], b[1:])),
+        MsgPackFormat.INT16.value: (ValueType.INT, lambda b: (struct.unpack('>h', b[:2])[0], b[2:])),
+        MsgPackFormat.INT32.value: (ValueType.INT, lambda b: (struct.unpack('>i', b[:4])[0], b[4:])),
+        MsgPackFormat.INT64.value: (ValueType.INT, lambda b: (struct.unpack('>q', b[:8])[0], b[8:])),
 
         0xD9: (ValueType.STR, lambda b: split_index(b, 1, struct.unpack('B', b[:1])[0])),
         0xDA: (ValueType.STR, lambda b: split_index(b, 2, struct.unpack('>H', b[:2])[0])),
         0xDB: (ValueType.STR, lambda b: split_index(b, 4, struct.unpack('>I', b[:4])[0])),
 
-        # 0xDC
-        # 0xDD
-        # 0xDE
-        # 0xDF
+        0xDC: (ValueType.ARRAY, lambda b: split_array(b, '>H', 2)),
+        0xDD: (ValueType.ARRAY, lambda b: split_array(b, '>I', 4)),
+
+        0xDE: (ValueType.MAP, lambda b: split_array(b, '>H', 2)),
+        0xDF: (ValueType.MAP, lambda b: split_array(b, '>I', 4)),
 
         0xE0: (ValueType.INT, lambda b: (-32, b)),
         0xE1: (ValueType.INT, lambda b: (-31, b)),
@@ -285,16 +327,26 @@ class Packer:
     def array(self, count):
         if count<=0xF:
             self.payload.append(MsgPackFormat.FIXARRAY.value + count)
-            return
-
-        raise NotImplementedError()
+        elif count<=0xFFFF:
+            self.payload.append(MsgPackFormat.ARRAY16.value)
+            self.payload.extend(struct.pack('>H', count))
+        elif count<=0xFFFFFFFF:
+            self.payload.append(MsgPackFormat.ARRAY32.value)
+            self.payload.extend(struct.pack('>I', count))
+        else:
+            raise OverflowError('array %d' % count)
 
     def map(self, count):
         if count<=0xF:
             self.payload.append(MsgPackFormat.FIXMAP.value + count)
-            return
-
-        raise NotImplementedError()
+        elif count<=0xFFFF:
+            self.payload.append(MsgPackFormat.MAP16.value)
+            self.payload.extend(struct.pack('>H', count))
+        elif count<=0xFFFFFFFF:
+            self.payload.append(MsgPackFormat.MAP32.value)
+            self.payload.extend(struct.pack('>I', count))
+        else:
+            raise OverflowError('map %d' % count)
 
     def pack(self, value):
         self.payload.extend(pack(value))
@@ -397,8 +449,16 @@ class Parser:
     def get(self):
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
-        x, remain=value(self.bytedata[1:])
-        return x
+        if t==ValueType.ARRAY:
+            return [x.get() for x in self]
+        elif t==ValueType.MAP:
+            return {k.get(): v.get() for k, v in self.items()}
+        else:
+            x, remain=value(self.bytedata[1:])
+            if t==ValueType.STR:
+                return x.decode('utf-8')
+            else:
+                return x
 
     def is_nil(self):
         head=self.bytedata[0]
@@ -487,7 +547,7 @@ class Parser:
                     return x
         else:
             for k, v in self.items():
-                if k.get_str()==index:
+                if k.get()==index:
                     return v
 
     def __iter__(self):
@@ -507,13 +567,26 @@ class Parser:
     def next(self):
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
+        count, body=value(self.bytedata[1:])
         if t==ValueType.ARRAY:
-            raise NotImplementedError()
+            x=0
+            current=Parser(body)
+            while x<count:
+                current
+                current=current.next()
+                x+=1
+            return current
         elif t==ValueType.MAP:
-            raise NotImplementedError()
+            x=0
+            current=Parser(body)
+            while x<count:
+                v=current.next()
+                current, v
+                current=v.next()
+                x+=1
+            return current
         else:
-            _, remain=value(self.bytedata[1:])
-            return Parser(remain)
+            return Parser(body)
 
     def items(self):
         return MapIter(self)

@@ -1,3 +1,4 @@
+# coding: utf-8
 import unittest
 import pymsgpack
 import struct
@@ -182,22 +183,71 @@ class TestPyMsgPack(unittest.TestCase):
                 , b''.join([b'\xdd', struct.pack('>I', n), b'\x01'*n]))
 
     def test_map(self):
-        src={
+
+        def _test_map(src, dst):
+            # pack
+            packed=pymsgpack.pack(src)
+            self.assertEqual(dst, packed)
+            # parse
+            parsed=pymsgpack.Parser(packed)
+            self.assertTrue(parsed.is_map())
+            self.assertEqual(src, parsed.get())
+
+        # fixmap
+        _test_map({
             'a': 1,
             'b': 2,
             'c': 3,
+        }, b'\x83\xa1\x61\x01\xa1\x62\x02\xa1\x63\x03')
+
+        # map16
+        n=0xF+1
+        b=bytearray(b'\xde')
+        b.extend(struct.pack('>H', n))
+        b.extend(b''.join([struct.pack('BB', x, x) for x in range(n)]))
+        _test_map({x: x for x in range(n)}, b)
+
+        # map32
+        def _pack_short(n):
+            if n<=0x7F:
+                return struct.pack('BB', n, n)
+            elif n<=0xFF:
+                return b''.join([
+                        b'\xcc',
+                        struct.pack('B', n),
+                        b'\xcc',
+                        struct.pack('B', n)
+                        ])
+            elif n<=0xFFFF:
+                return b''.join([
+                        b'\xcd',
+                        struct.pack('>H', n),
+                        b'\xcd',
+                        struct.pack('>H', n)
+                        ])
+            else:
+                raise NotImplementedError()
+        n=0xFFFF+1
+        b=bytearray(b'\xdf')
+        b.extend(struct.pack('>I', n))
+        b.extend(b''.join([_pack_short(x) for x in range(n)]))
+        #_test_map({x: x for x in range(n)}, b)
+
+    def test_nest(self):
+
+        src={
+                'nest': {
+                    'hoge': 1
+                    }
         }
+
         # pack
         packed=pymsgpack.pack(src)
-        self.assertEqual(b'\x83\xa1\x61\x01\xa1\x62\x02\xa1\x63\x03', packed)
+        #self.assertEqual(dst, packed)
         # parse
         parsed=pymsgpack.Parser(packed)
-        self.assertTrue(parsed.is_map())
-        self.assertEqual(3, len(parsed))
-        self.assertEqual(1, parsed['a'].get_number())
-        self.assertEqual(2, parsed['b'].get_number())
-        self.assertEqual(3, parsed['c'].get_number())
-
+        #self.assertTrue(parsed.is_map())
+        self.assertEqual(src, parsed.get())
 
 if __name__ == '__main__':
     unittest.main()
