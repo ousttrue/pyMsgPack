@@ -17,6 +17,8 @@ class TestPyMsgPack(unittest.TestCase):
         parsed=pymsgpack.Parser(packed)
         self.assertTrue(parsed.is_nil())
 
+        self.assertEqual(1, len(parsed.get_bytes()))
+
     def test_false(self):
         # pack
         packed=pymsgpack.pack(False)
@@ -249,6 +251,17 @@ class TestPyMsgPack(unittest.TestCase):
         #self.assertTrue(parsed.is_map())
         self.assertEqual(src, parsed.get())
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_construct(self):
 
+        partial=pymsgpack.pack([1, 2, 3])
+        parsed=pymsgpack.Parser(partial)
+        packed=pymsgpack.pack({
+            'key': parsed
+            })
+
+        self.assertEqual(b'\x81\xa3\x6b\x65\x79\x93\x01\x02\x03',bytes(packed))
+
+if __name__ == '__main__':
+    t=TestPyMsgPack()
+    t.test_construct()
+    #unittest.main(TestPyMsgPack.test_construct)

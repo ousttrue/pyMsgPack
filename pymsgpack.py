@@ -349,7 +349,8 @@ class Packer:
             raise OverflowError('map %d' % count)
 
     def pack(self, value):
-        self.payload.extend(pack(value))
+        packed=pack(value)
+        self.payload.extend(packed)
 
 
 def pack(obj):
@@ -418,6 +419,9 @@ def pack(obj):
             return struct.pack('>BI%ds' % bin_len, MsgPackFormat.BIN32.value, bin_len, obj)
         else:
             raise OverflowError('pack failed. %s' % obj)
+
+    elif isinstance(obj, Parser):
+        return obj.get_bytes()
 
     elif isinstance(obj, dict):
         packer=Packer()
@@ -577,7 +581,7 @@ class Parser:
                 pos+=len(current.get_bytes())
                 current=current.next()
                 x+=1
-            return pos
+            return self.bytedata[0:pos]
         elif t==ValueType.MAP:
             x=0
             pos=1+offset
@@ -589,9 +593,9 @@ class Parser:
                 pos+=len(v.get_bytes())
                 current=v.next()
                 x+=1
-            return current
+            return self.bytedata[0:pos]
         else:
-            return self.bytearray[0:offset]
+            return self.bytedata[0:1+offset]
 
     def next(self):
         head=self.bytedata[0]
@@ -620,6 +624,7 @@ class Parser:
 
     def items(self):
         return MapIter(self)
+
 
 class MapIter:
     def __init__(self, parser):
