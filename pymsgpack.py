@@ -442,8 +442,9 @@ def pack(obj):
 
 
 class Parser:
-    def __init__(self, bytedata):
+    def __init__(self, bytedata, filled=True):
         self.bytedata=bytedata
+        self.filled=filled
 
     def get_type(self):
         head=self.bytedata[0]
@@ -569,6 +570,9 @@ class Parser:
             raise ValueError('is not array. %s' % t)
 
     def get_bytes(self):
+        if self.filled:
+            return self.bytedata
+
         head=self.bytedata[0]
         t, value=HEAD_MAP[head]
         count, offset=value(self.bytedata[1:])
@@ -644,4 +648,3 @@ class MapIter:
             yield current, v
             current=v.next()
             x+=1
-
