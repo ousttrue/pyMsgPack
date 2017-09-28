@@ -184,6 +184,11 @@ class TestPyMsgPack(unittest.TestCase):
         _test_array([1 for x in range(n)]
                 , b''.join([b'\xdd', struct.pack('>I', n), b'\x01'*n]))
 
+        # iter
+        packed=pymsgpack.pack([1, {2: 2}, 3])
+        parsed=[x for x in pymsgpack.Parser(packed)]
+        self.assertEqual(3, len(parsed))
+
     def test_map(self):
 
         def _test_map(src, dst):

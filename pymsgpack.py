@@ -561,10 +561,13 @@ class Parser:
         if t==ValueType.ARRAY:
             count, offset=value(self.bytedata[1:])
             x=0
-            current=Parser(self.bytedata[1+offset:])
+            current=None
             while x<count:
+                if current is None:
+                    current=Parser(self.bytedata[1+offset:])
+                else:
+                    current=current.next()
                 yield current
-                current=current.next()
                 x+=1
         else:
             raise ValueError('is not array. %s' % t)
@@ -642,9 +645,12 @@ class MapIter:
         count, offset=value(self.bytedata[1:])
         body=self.bytedata[1+offset:]
         x=0
-        current=Parser(body)
+        current=None
         while x<count:
+            if current is None:
+                current=Parser(body)
+            else:
+                current=v.next()
             v=current.next()
             yield current, v
-            current=v.next()
             x+=1
