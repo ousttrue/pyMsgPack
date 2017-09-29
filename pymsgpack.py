@@ -442,6 +442,7 @@ def pack(obj):
 
 
 class Parser:
+    __slots__=('bytedata', 'filled')
     def __init__(self, bytedata, filled=True):
         self.bytedata=bytedata
         self.filled=filled
