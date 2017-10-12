@@ -444,7 +444,7 @@ def pack(obj):
 class Parser:
     __slots__=('bytedata', 'filled')
     def __init__(self, bytedata, filled=True):
-        self.bytedata=bytedata
+        self.bytedata=memoryview(bytedata)
         self.filled=filled
 
     def get_type(self):
@@ -462,7 +462,7 @@ class Parser:
         else:
             x, _=value(self.bytedata[1:])
             if t==ValueType.STR:
-                return x.decode('utf-8')
+                return x.tobytes().decode('utf-8')
             else:
                 return x
 
@@ -524,7 +524,7 @@ class Parser:
         t, value=HEAD_MAP[head]
         if t==ValueType.STR:
             x, _=value(self.bytedata[1:])
-            return x.decode('utf-8')
+            return x.tobytes().decode('utf-8')
 
         raise ValueError('is not str. %s' % t)
 
